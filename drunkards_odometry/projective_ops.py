@@ -130,12 +130,12 @@ def absolut_to_relative_poses(pose1, pose2):
 
 def relative_to_absoult_poses(pose1, T_c2_c1):
     """
-    Given a intial pose1 in world-to-camera and the relative transformation matrix to change from camera1 to 2 a
+    Given a intial pose1 in world-to-camera and the relative pose transformation to change from camera1 to 2 a
     camera-to-world transformation:
         T_w_c1 (pose1): traslation, quaternions
         T_c2_c1:  traslation, quaternions
 
-    Return final pose2 transformation matrix in world-to-camera:
+    Return final pose2 transformation in world-to-camera:
         T_w_c2 (pose2): traslation, quaternions
         T_w_c2 = (T_c2_c1 * (T_w_c1)^-1)^-1
     """

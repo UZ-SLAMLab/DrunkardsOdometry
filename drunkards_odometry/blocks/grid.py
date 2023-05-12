@@ -5,8 +5,6 @@ import time
 import scipy.sparse
 from sksparse import cholmod
 import torch.nn.functional as F
-from multiprocessing import Pool
-
 
 
 class GridCholeskySolver(torch.autograd.Function):

@@ -238,15 +238,6 @@ class DrunkardsOdometry(nn.Module):
 
         return twist
 
-    def dense_from_quat_to_euler(self, Ts):
-        batch_size, ht, wd = Ts.shape
-        device = Ts.device
-        twist = Ts.matrix()
-
-        twist = twist.view((-1, 4, 4))
-        twist_euler = pops.pose_from_matrix_to_euler(twist).view((batch_size, ht, wd, 6)).to(device)
-
-        return twist_euler
 
     def features_and_correlation(self, image1, image2):
         # extract features and build correlation volume
@@ -266,7 +257,7 @@ class DrunkardsOdometry(nn.Module):
     def invert_pose(self, image1, T_2_1):
         """Invert pose"""
         batch_size, ch, ht, wd = image1.shape
-        device = image1.device
+        device = image1.device  # TODO YO CREO QUE NO HACE FALTA ESTO, APLICARLE EL TODEVICE A T_2_11 ANTES DE LA FUNCION
 
         T_2_1 = pops.pose_from_quat_to_matrix(T_2_1).to(device)
         for i in range(batch_size):
@@ -323,7 +314,7 @@ class DrunkardsOdometry(nn.Module):
 
         return pose  # quaternions
 
-    def forward(self, image1, image2, depth1, depth2, intrinsics, valid_mask, iters=12, train_mode=False,
+    def forward(self, image1, image2, depth1, depth2, intrinsics, iters=12, train_mode=False,
                 depth_scale_factor=1.0):
         """ Estimate optical flow between pair of frames """
         # Estimate an initial guess of the relative camera pose to pass from cam1 to cam2
@@ -349,13 +340,7 @@ class DrunkardsOdometry(nn.Module):
 
         flow_est_list = []
         flow_rev_list = []
-        Ts_up_list = []
         pose_list = []
-
-        pose_tra_rel_error = []
-        pose_rot_rel_error = []
-
-        valid = None
 
         for itr in range(iters):
             Ts = Ts.detach()
@@ -397,15 +382,10 @@ class DrunkardsOdometry(nn.Module):
                 pose_list.append(self.invert_pose(image1, pose.vec().squeeze()))
 
         if train_mode:
-            _, _, valid_new = pops.induced_flow(Ts_up, depth1, intrinsics)
-            valid_new = valid_new > 0.5
-            if valid is None:
-                valid = valid_new
-            else:
-                valid *= valid_new
+            _, _, valid = pops.induced_flow(Ts_up, depth1, intrinsics)
+            valid = valid > 0.5
 
-            if 'pose_cnn' in locals():
-                pose_list.append(pose_cnn)
+            pose_list.append(pose_cnn)
 
             return flow_est_list, flow_rev_list, pose_list, valid
 

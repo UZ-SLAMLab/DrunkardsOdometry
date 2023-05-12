@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 
 class ResidualBlock(nn.Module):
@@ -168,7 +167,6 @@ class BasicEncoder(nn.Module):
 
 
     def forward(self, x, y=None):
-
         # if input is list, combine batch dimension
         is_list = isinstance(x, tuple) or isinstance(x, list)
         if is_list:

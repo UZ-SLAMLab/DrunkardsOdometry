@@ -8,8 +8,6 @@ from torch.hub import load_state_dict_from_url
 
 MODEL_URL = 'https://download.pytorch.org/models/resnet50-19c8e357.pth'
 
-import torch.utils.checkpoint as checkpoint
-
 
 class FPN(ResNet):
     def __init__(self, output_dim=512, depth_input=False):

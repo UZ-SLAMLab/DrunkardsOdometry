@@ -9,7 +9,7 @@ def bilinear_sampler(img, coords, mode='bilinear', mask=False):
     ygrid = 2*ygrid/(H-1) - 1
 
     grid = torch.cat([xgrid, ygrid], dim=-1)
-    img = F.grid_sample(img, grid, align_corners=True)  #TODO usar padding border en lugar de zeros? xq al usar zeros, al calcular luego la diferencia de depths, va a haber una mayor diferencia en los pixeles que caigan fuera si usamos zeros que border, lo cual es un error. Pero luego si en la loss se ignorarn esos pixeles pues da igual
+    img = F.grid_sample(img, grid, align_corners=True)
 
     if mask:
         mask = (xgrid > -1) & (ygrid > -1) & (xgrid < 1) & (ygrid < 1)

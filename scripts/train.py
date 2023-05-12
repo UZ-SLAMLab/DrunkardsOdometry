@@ -10,17 +10,6 @@ from data_readers.drunkards import DrunkDataset
 sys.path.append('.')
 
 
-def dense_from_quat_to_euler(Ts):
-    batch_size, ht, wd = Ts.shape
-    device = Ts.device
-    twist = Ts.matrix()
-
-    twist = twist.view((-1, 4, 4))
-    twist_euler = pops.pose_from_matrix_to_euler(twist).view((batch_size, ht, wd, 6)).to(device)
-
-    return twist_euler
-
-
 def loss_fn(flow2d_est, flow2d_rev, pose_list, flow_gt, depth1, depth2, intrinsics, pose_gt, valid_mask, args, mode, gamma=0.9):
     """ Loss function defined over sequence of flow predictions """
     fl_weight = args.fl_weight
@@ -33,7 +22,6 @@ def loss_fn(flow2d_est, flow2d_rev, pose_list, flow_gt, depth1, depth2, intrinsi
     N = len(flow2d_est)  # Number of iterations of the update block
     loss = 0.0
     fl_gt, dz_gt = flow_gt.split([2, 1], dim=-1)
-    flow3d_gt = pops.backproject_flow3d(fl_gt, depth1, depth2, intrinsics)
 
     for i in range(N):
         w = gamma ** (N - i - 1)
@@ -54,9 +42,6 @@ def loss_fn(flow2d_est, flow2d_rev, pose_list, flow_gt, depth1, depth2, intrinsi
         rv_loss = valid_mask * L1_Charbonnier_loss(fl_rev, fl_gt)
         rv_loss = rv_loss[rv_loss.nonzero(as_tuple=True)].mean()
 
-        flow3d_est = pops.backproject_flow3d(fl_est, depth1, depth2, intrinsics)
-        flow3d_tra_error_RMSE = get_flow3d_tra_errors(flow3d_est, flow3d_gt, valid_mask)
-
         # Relative camera pose loss
         if isinstance(pose_list, list):
             pose = pose_list[i]
@@ -66,7 +51,6 @@ def loss_fn(flow2d_est, flow2d_rev, pose_list, flow_gt, depth1, depth2, intrinsi
             pose = pose_list
 
         pose_tra_error_ME, pose_tra_error_RMSE, pose_rot_error_ME, pose_rot_error_axisangle_module = get_pose_errors(pose, pose_gt)
-
         pose_tra_loss = pose_tra_error_ME
         pose_rot_loss = pose_rot_error_ME
 
@@ -95,75 +79,44 @@ def loss_fn(flow2d_est, flow2d_rev, pose_list, flow_gt, depth1, depth2, intrinsi
     epe_dz = (dz_est - dz_gt).norm(dim=-1)
     epe_dz = epe_dz.view(-1)[valid_mask.view(-1)]  # inverse depth change error
 
-    pose_tra_error_ME, pose_tra_error_RMSE, pose_rot_error_ME, pose_rot_error_axisangle_module = get_pose_errors(pose, pose_gt)
-    pose_cnn_tra_error_ME, pose_cnn_tra_error_RMSE, pose_cnn_rot_error_ME, pose_cnn_rot_error_axisangle_module = get_pose_errors(pose_cnn, pose_gt)
-
+    flow3d_gt = pops.backproject_flow3d(fl_gt, depth1, depth2, intrinsics)
+    flow3d_est = pops.backproject_flow3d(fl_est, depth1, depth2, intrinsics)
+    flow3d_tra_error_RMSE = get_flow3d_tra_errors(flow3d_est, flow3d_gt, valid_mask)
     flow3d_tra_error_1cm = torch.count_nonzero(flow3d_tra_error_RMSE < .01) / flow3d_tra_error_RMSE.size(0)
     flow3d_tra_error_5cm = torch.count_nonzero(flow3d_tra_error_RMSE < .05) / flow3d_tra_error_RMSE.size(0)
     flow3d_tra_error_10cm = torch.count_nonzero(flow3d_tra_error_RMSE < .1) / flow3d_tra_error_RMSE.size(0)
     flow3d_tra_error_20cm = torch.count_nonzero(flow3d_tra_error_RMSE < .2) / flow3d_tra_error_RMSE.size(0)
 
+    suffix = '_val' if mode == 'val' else ''
     metrics = {}
-    if mode == 'train':
-        metrics['epe_2d'] = epe_2d.mean().item(),
-        metrics['epe_dz'] = epe_dz.mean().item(),
-        metrics['1px'] = (epe_2d < 1).float().mean().item(),
-        metrics['3px'] = (epe_2d < 3).float().mean().item(),
-        metrics['5px'] = (epe_2d < 5).float().mean().item(),
-        metrics['loss'] = loss,
-        metrics['loss_fl'] = loss_fl,
-        metrics['loss_dz'] = loss_dz,
-        metrics['loss_rv'] = loss_rv
-        metrics['loss_pose_tra'] = loss_pose_tra
-        metrics['loss_pose_rot'] = loss_pose_rot
-        metrics['loss_pose_cnn_tra'] = loss_pose_cnn_tra
-        metrics['loss_pose_cnn_rot'] = loss_pose_cnn_rot
-        metrics['pose_cnn_tra_error_ME'] = pose_cnn_tra_error_ME.item()
-        metrics['pose_cnn_tra_error_RMSE'] = pose_cnn_tra_error_RMSE.item()
-        metrics['pose_cnn_rot_error_ME'] = pose_cnn_rot_error_ME.item()
-        metrics['pose_cnn_rot_error_axisangle_module'] = pose_cnn_rot_error_axisangle_module.item()
-        metrics['flow3d_tra_error_RMSE'] = flow3d_tra_error_RMSE.item()
-        metrics['flow3d_tra_error_1cm'] = flow3d_tra_error_1cm.item()
-        metrics['flow3d_tra_error_5cm'] = flow3d_tra_error_5cm.item()
-        metrics['flow3d_tra_error_10cm'] = flow3d_tra_error_10cm.item()
-        metrics['flow3d_tra_error_20cm'] = flow3d_tra_error_20cm.item()
-        metrics['pose_tra_error_ME'] = pose_tra_error_ME.item()
-        metrics['pose_tra_error_RMSE'] = pose_tra_error_RMSE.item()
-        metrics['pose_rot_error_ME'] = pose_rot_error_ME.item()
-        metrics['pose_rot_error_axisangle_module'] = pose_rot_error_axisangle_module.item()
+    metrics['epe_2d' + suffix] = epe_2d.mean().item(),
+    metrics['epe_dz' + suffix] = epe_dz.mean().item(),
+    metrics['1px' + suffix] = (epe_2d < 1).float().mean().item(),
+    metrics['3px' + suffix] = (epe_2d < 3).float().mean().item(),
+    metrics['5px' + suffix] = (epe_2d < 5).float().mean().item(),
+    metrics['loss' + suffix] = loss,
+    metrics['loss_fl' + suffix] = loss_fl,
+    metrics['loss_dz' + suffix] = loss_dz,
+    metrics['loss_rv' + suffix] = loss_rv
+    metrics['loss_pose_tra' + suffix] = loss_pose_tra
+    metrics['loss_pose_rot' + suffix] = loss_pose_rot
+    metrics['loss_pose_cnn_tra' + suffix] = loss_pose_cnn_tra
+    metrics['loss_pose_cnn_rot' + suffix] = loss_pose_cnn_rot
+    metrics['pose_cnn_tra_error_ME' + suffix] = pose_cnn_tra_error_ME.item()
+    metrics['pose_cnn_tra_error_RMSE' + suffix] = pose_cnn_tra_error_RMSE.item()
+    metrics['pose_cnn_rot_error_ME' + suffix] = pose_cnn_rot_error_ME.item()
+    metrics['pose_cnn_rot_error_axisangle_module' + suffix] = pose_cnn_rot_error_axisangle_module.item()
+    metrics['flow3d_tra_error_RMSE' + suffix] = flow3d_tra_error_RMSE.item()
+    metrics['flow3d_tra_error_1cm' + suffix] = flow3d_tra_error_1cm.item()
+    metrics['flow3d_tra_error_5cm' + suffix] = flow3d_tra_error_5cm.item()
+    metrics['flow3d_tra_error_10cm' + suffix] = flow3d_tra_error_10cm.item()
+    metrics['flow3d_tra_error_20cm' + suffix] = flow3d_tra_error_20cm.item()
+    metrics['pose_tra_error_ME' + suffix] = pose_tra_error_ME.item()
+    metrics['pose_tra_error_RMSE' + suffix] = pose_tra_error_RMSE.item()
+    metrics['pose_rot_error_ME' + suffix] = pose_rot_error_ME.item()
+    metrics['pose_rot_error_axisangle_module' + suffix] = pose_rot_error_axisangle_module.item()
 
-        return loss, metrics
-
-    elif mode == 'val':
-        metrics['epe_2d_val'] = epe_2d.mean().item(),
-        metrics['epe_dz_val'] = epe_dz.mean().item(),
-        metrics['1px_val'] = (epe_2d < 1).float().mean().item(),
-        metrics['3px_val'] = (epe_2d < 3).float().mean().item(),
-        metrics['5px_val'] = (epe_2d < 5).float().mean().item(),
-        metrics['loss_val'] = loss,
-        metrics['loss_fl_val'] = loss_fl,
-        metrics['loss_dz_val'] = loss_dz,
-        metrics['loss_rv_val'] = loss_rv
-        metrics['loss_pose_tra_val'] = loss_pose_tra
-        metrics['loss_pose_rot_val'] = loss_pose_rot
-        metrics['loss_pose_cnn_tra_val'] = loss_pose_cnn_tra
-        metrics['loss_pose_cnn_rot_val'] = loss_pose_cnn_rot
-        metrics['pose_cnn_tra_error_ME_val'] = pose_cnn_tra_error_ME.item()
-        metrics['pose_cnn_tra_error_RMSE_val'] = pose_cnn_tra_error_RMSE.item()
-        metrics['pose_cnn_rot_error_ME_val'] = pose_cnn_rot_error_ME.item()
-        metrics['pose_cnn_rot_error_axisangle_module_val'] = pose_cnn_rot_error_axisangle_module.item()
-        metrics['flow3d_tra_error_RMSE_val'] = flow3d_tra_error_RMSE.item()
-        metrics['flow3d_tra_error_RMSE_val'] = flow3d_tra_error_RMSE.item()
-        metrics['flow3d_tra_error_1cm_val'] = flow3d_tra_error_1cm.item()
-        metrics['flow3d_tra_error_5cm_val'] = flow3d_tra_error_5cm.item()
-        metrics['flow3d_tra_error_10cm_val'] = flow3d_tra_error_10cm.item()
-        metrics['flow3d_tra_error_20cm_val'] = flow3d_tra_error_20cm.item()
-        metrics['pose_tra_error_ME_val'] = pose_tra_error_ME.item()
-        metrics['pose_tra_error_RMSE_val'] = pose_tra_error_RMSE.item()
-        metrics['pose_rot_error_ME_val'] = pose_rot_error_ME.item()
-        metrics['pose_rot_error_axisangle_module_val'] = pose_rot_error_axisangle_module.item()
-
-        return metrics
+    return loss, metrics if mode == 'train' else metrics
 
 
 def fetch_dataloader(args):
@@ -203,9 +156,10 @@ def train(args):
 
     MODEL = importlib.import_module('drunkards_odometry.model').DrunkardsOdometry
     model = MODEL(args)
-    model = torch.nn.DataParallel(model)
+    # model = torch.nn.DataParallel(model) # todo iguial no hace falta
 
     train_loader, val_loader = fetch_dataloader(args)
+    val_iter = iter(val_loader)
     optimizer, scheduler, clipper = fetch_optimizer(model, args)
 
     start = 0
@@ -255,7 +209,7 @@ def train(args):
 
             flow2d_est, flow2d_rev, pose, valid = model(
                 **dict(image1=image1, image2=image2, depth1=depth1, depth2=depth2,
-                       intrinsics=intrinsics, valid_mask=valid_mask, iters=12, train_mode=True,
+                       intrinsics=intrinsics, iters=12, train_mode=True,
                        depth_scale_factor=depth_scale_factor))
 
             valid_mask *= valid.unsqueeze(-1)
@@ -275,11 +229,10 @@ def train(args):
                 model.eval()
 
                 with torch.no_grad():
-                    try:
-                        data_blob = val_iter.next()
-                    except:
+                    data_blob = next(val_iter, None)
+                    if data_blob is None:
                         val_iter = iter(val_loader)
-                        data_blob = val_iter.next()
+                        data_blob = next(val_iter)
 
                     image1_, image2_, depth1, depth2, pose_gt, intrinsics, flowxyz_gt, valid_mask, depth_scale_factor = [
                         x.to(device) for x in data_blob]
@@ -289,8 +242,7 @@ def train(args):
 
                     flow2d_est, flow2d_rev, pose, valid = model(
                         **dict(image1=image1, image2=image2, depth1=depth1, depth2=depth2,
-                               intrinsics=intrinsics, valid_mask=valid_mask, iters=12, train_mode=True,
-                               iters_icp=args.iters_icp, icp_method=args.icp_method,
+                               intrinsics=intrinsics, iters=12, train_mode=True,
                                depth_scale_factor=depth_scale_factor))
 
                     valid_mask *= valid.unsqueeze(-1)
@@ -321,7 +273,6 @@ def train(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', default='bla', help='name your experiment')
-    parser.add_argument('--network', default='drunkards_odometry.model')
     parser.add_argument('--ckpt', help='checkpoint to restore')
     parser.add_argument('--batch_size', type=int, default=4)
     parser.add_argument('--lr', type=float, default=.0001)
@@ -335,7 +286,7 @@ if __name__ == '__main__':
     parser.add_argument('--train_scenes', type=int, nargs='+',
                         default=[1, 2, 3, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19],
                         help='scenes used for training')
-    parser.add_argument('--val_scenes', type=int, nargs='+', default=[0, 4, 5], help='scenes used for training')
+    parser.add_argument('--val_scenes', type=int, nargs='+', default=[0, 4, 5], help='scenes used for validating')
     parser.add_argument("--save_path", type=str, help="if specified, logs and checkpoint will be saved here")
     parser.add_argument('--fl_weight', type=float, default=1.0)
     parser.add_argument('--rv_weight', type=float, default=0.2)
