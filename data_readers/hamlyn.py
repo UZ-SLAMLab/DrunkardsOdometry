@@ -65,7 +65,7 @@ class HamlynDataset(data.Dataset):
         intrinsics = torch.from_numpy(self.intrinsics_list[index]).float()
         # target_res = self.target_res_list[index]
         # original_res = [image1.shape[1], image1.shape[2]] # todo chequear que la altura y anchura estan bien
-
+        #
         # if target_res[0] != original_res[0] or target_res[1] != original_res[1]: # todo creo que esto no hace falta porque es siempre igual
         #     h, w = target_res[0], target_res[1]
         #     sy, sx = float(h) / float(original_res[0]), float(w) / float(original_res[1])

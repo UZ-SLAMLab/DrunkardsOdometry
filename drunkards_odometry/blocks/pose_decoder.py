@@ -1,3 +1,4 @@
+# Modified from:
 # Copyright Niantic 2021. Patent Pending. All rights reserved.
 #
 # This software is licensed under the terms of the ManyDepth licence
@@ -45,9 +46,8 @@ class PoseDecoder(nn.Module):
         out = out.mean(3).mean(2)
 
         out = 0.01 * out.view(-1, self.num_frames_to_predict_for, 1, 6)
-        # out = out.view(-1, self.num_frames_to_predict_for, 1, 6)
 
-        axisangle = out[..., :3]
+        rotation = out[..., :3]
         translation = out[..., 3:]
 
-        return axisangle, translation
+        return rotation, translation

@@ -8,7 +8,7 @@ from . import projective_ops as pops
 
 class SE3BuilderInplace(torch.autograd.Function):
     @staticmethod
-    def forward(ctx, se3, ae, pts, target, weight, intrinsics, radius=32):  # TODO radius default = 32
+    def forward(ctx, se3, ae, pts, target, weight, intrinsics, radius=32):
         """ Build linear system Hx = b """
         ctx.radius = radius
         ctx.save_for_backward(se3, ae, pts, target, weight, intrinsics)

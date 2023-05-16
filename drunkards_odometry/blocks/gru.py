@@ -1,10 +1,9 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 
 class ConvGRU(nn.Module):
-    def __init__(self, hidden_dim=128, input_dim=192+128, dilation=4):
+    def __init__(self, hidden_dim=128, dilation=4):
         super(ConvGRU, self).__init__()
         self.hidden_dim = hidden_dim
         self.convz1 = nn.Conv2d(hidden_dim, hidden_dim, 3, padding=1)

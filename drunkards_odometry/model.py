@@ -304,12 +304,12 @@ class DrunkardsOdometry(nn.Module):
         pose_inputs = [image1, image2]
 
         pose_inputs = [self.pose_encoder(torch.cat(pose_inputs, 1))]
-        axisangle, translation = self.pose_decoder(pose_inputs)
+        rotation, translation = self.pose_decoder(pose_inputs)
 
         # Estimate in log
-        axisangle = axisangle[:, 0].clone().squeeze()
+        rotation = rotation[:, 0].clone().squeeze()
         translation = translation[:, 0].clone().squeeze()
-        pose = torch.cat((translation, axisangle), -1)
+        pose = torch.cat((translation, rotation), -1)
         pose = SE3.exp(pose).vec()
 
         return pose  # quaternions

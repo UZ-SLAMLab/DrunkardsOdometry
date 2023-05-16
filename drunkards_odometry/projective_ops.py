@@ -1,7 +1,3 @@
-import copy
-
-import torch
-import torch.nn.functional as F
 import numpy as np
 from scipy.spatial.transform import Rotation as R  # Hamilton quaternion convention. qx, qy, qz, qw
 from pytorch3d.transforms import matrix_to_quaternion, quaternion_to_matrix, quaternion_invert, euler_angles_to_matrix, matrix_to_euler_angles  # qw, qx, qy, qz
@@ -187,46 +183,6 @@ def pose_from_quat_to_matrix(pose):
     pose[:, 3, 3] = torch.ones(batch_size)
 
     return pose
-
-
-def pose_from_matrix_to_euler(pose):
-    """ Transform from pose in matrix to pose in Euler.
-
-        Input: [[rxx, rxy, rxz, tx], [ryx, ryy, ryz, ty], [rzx, rzy, rzz, tz], [0, 0, 0, 1]]
-        Output: [tx, ty, tz, qx, qy, qz]
-
-        Input shape: BATCH, 4, 4
-        Output shape: BATCH, 6
-        """
-    if pose.dim() == 1:
-        pose = pose.unsqueeze(0)
-
-    rot_matrix = pose[:, :3, :3]
-    q = matrix_to_euler_angles(rot_matrix, "XYZ")
-    pose = torch.cat((pose[:, :3, 3], q), -1)
-
-    return pose
-
-
-def pose_from_euler_to_matrix(pose):
-    """ Transform from pose in Euler angles to matrix.
-
-        Input: [tx, ty, tz, qx, qy, qz]
-        Output: [[rxx, rxy, rxz, tx], [ryx, ryy, ryz, ty], [rzx, rzy, rzz, tz], [0, 0, 0, 1]]
-
-        Input shape: BATCH, 6
-        Output shape: BATCH, 4, 4
-        """
-    if pose.dim() == 1:
-        pose = pose.unsqueeze(0)
-
-    t, rot_euler = pose.split([3, 3], dim=-1)
-    q = euler_angles_to_matrix(rot_euler, "XYZ")
-    batch_size = pose.size(0)
-    q_ = torch.cat((q, t.unsqueeze(-1)), -1)
-    x = torch.cat((torch.zeros(batch_size, 1, 3), torch.ones(batch_size, 1, 1)), -1).to(q_.device)
-    pose_ = torch.cat((q_, x), 1)
-    return pose_
 
 
 def pose_from_matrix_to_quat(pose):
