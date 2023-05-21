@@ -37,7 +37,7 @@ class DrunkDataset(data.Dataset):
         self.pose_list = []
         self.intrinsics_list = []
 
-        intrinsics = np.array([1144.0835571289062, 1716.1253356933594, 960.0, 960.0])
+        intrinsics = np.array([610.17789714, 915.2668457, 512., 512.])  # 1024x1024
 
         available_scenes = [i.lstrip('0') or '0' for i in os.listdir(root)]
         available_scenes = list(map(int, available_scenes))

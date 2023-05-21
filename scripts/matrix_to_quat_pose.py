@@ -9,7 +9,7 @@ from tqdm import tqdm
 Input .txt
 timestamp, r_11, r_12, r_13, t_x, r_21, r_22, r_23, t_y, r_31, r_32, r_33, t_z
 
-Output .csv:
+Output .txt:
 1st Column: Timestamps
 2-4th Columns: t_x, t_y, t_z 
 5-8th Columns: q_x, q_y, q_z, q_w
@@ -22,6 +22,8 @@ args = parser.parse_args()
 
 input_pose_path = os.path.join(args.input_pose_path, "pose_matrix.txt")
 output_pose_path = os.path.join(args.output_pose_path, "pose.txt")
+
+print("Converting matrix to quaternion poses")
 
 # Read input poses
 with open(input_pose_path) as f:

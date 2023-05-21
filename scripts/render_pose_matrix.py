@@ -52,9 +52,9 @@ args = parser.parse_args(sys.argv[sys.argv.index("--") + 1:])
 prefix_pose = args.pose_folder
 scene_id = args.scene
 
-total_steps = {"00000": 100,"00001": 1523,"00002": 1240,"00003": 3308,"00004": 4545,"00005": 1655,"00006": 1515,
-               "00007": 2341,"00008": 3033,"00009": 8098,"00010": 3632,"00011": 4168,"00012": 4168,"00013": 3296,
-               "00014": 23863,"00015": 7984,"00016": 5389,"00018": 10989,"00019": 9739}
+total_steps = {"00000": 100, "00001": 1523, "00002": 1240, "00003": 3308, "00004": 4545, "00005": 1655, "00006": 1515,
+               "00007": 2341, "00008": 3033, "00009": 8098, "00010": 3632, "00011": 4168, "00012": 4168, "00013": 3296,
+               "00014": 23863, "00015": 7984, "00016": 5389, "00018": 10989, "00019": 9739}
 
 scene = bpy.context.scene
 print("\nCamera transformation world-to-hzc from current frame to the following")
@@ -62,7 +62,6 @@ print("\nCamera transformation world-to-hzc from current frame to the following"
 range = range(0, total_steps[scene_id])
 
 for step in range:
-    # Set render frame
     scene.frame_set(step)
     my_handler(scene)
 

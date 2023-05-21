@@ -13,9 +13,9 @@ do
    for level_idx in $levels
    do
       level="level$level_idx"
-      pose_path="$output_dataset_path/$scene/$level"
-      $blender_exe -b $blend_files_path/$scene/$level/workspace.blend -P $project_path/scripts/render_pose_matrix.py -- -p $pose_path -s $scene
-      python $project_path/scripts/matrix_to_quat_pose.py -i $pose_path -o $pose_path
-      rm $pose_path/pose_matrix.txt
+      save_path="$output_dataset_path/$scene/$level"
+      $blender_exe -b $blend_files_path/$scene/$level/workspace.blend -E BLENDER_EEVEE -P $project_path/scripts/render_color_and_depth.py -- -o $save_path -s $scene
    done
 done
+
+
