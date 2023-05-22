@@ -174,7 +174,7 @@ class DrunkardsOdometry(nn.Module):
         self.corr_radius = 3
 
         # feature network, context network, and update block
-        self.fnet = BasicEncoder(output_dim=128, norm_fn='instance', dropout=args.dropout)
+        self.fnet = BasicEncoder(output_dim=128, norm_fn='instance')
         self.cnet = FPN(output_dim=hdim + 3 * hdim)
         self.update_block = BasicUpdateBlock(args, hidden_dim=hdim)
 

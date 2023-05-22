@@ -14,8 +14,8 @@ do
    do
       level="level$level_idx"
       pose_path="$output_dataset_path/$scene/$level"
-      $blender_exe -b $blend_files_path/$scene/$level/workspace.blend -P $project_path/scripts/render_pose_matrix.py -- -p $pose_path -s $scene
-      python $project_path/scripts/matrix_to_quat_pose.py -i $pose_path -o $pose_path
+      $blender_exe -b $blend_files_path/$scene/$level/workspace.blend -P $project_path/scripts/render/pose_matrix.py -- -p $pose_path -s $scene
+      python $project_path/scripts/render/matrix_to_quat_pose.py -i $pose_path -o $pose_path
       rm $pose_path/pose_matrix.txt
    done
 done

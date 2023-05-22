@@ -14,7 +14,7 @@ do
    do
       level="level$level_idx"
       save_path="$output_dataset_path/$scene/$level"
-      $blender_exe -b $blend_files_path/$scene/$level/workspace.blend -E BLENDER_EEVEE -P $project_path/scripts/render_color_and_depth.py -- -o $save_path -s $scene
+      $blender_exe -b $blend_files_path/$scene/$level/workspace.blend -E BLENDER_EEVEE -P $project_path/scripts/render/color_and_depth.py -- -o $save_path -s $scene
    done
 done
 

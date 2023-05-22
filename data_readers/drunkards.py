@@ -39,7 +39,7 @@ class DrunkDataset(data.Dataset):
 
         intrinsics = np.array([610.17789714, 915.2668457, 512., 512.])  # 1024x1024
 
-        available_scenes = [i.lstrip('0') or '0' for i in os.listdir(root)]
+        available_scenes = [i.name.lstrip('0') or '0' for i in os.scandir(root) if i.is_dir()]
         available_scenes = list(map(int, available_scenes))
         if isinstance(scenes_to_use, int):
             scenes_to_use = [scenes_to_use]
@@ -121,7 +121,7 @@ class DrunkDataset(data.Dataset):
         intrinsics = torch.from_numpy(self.intrinsics_list[index]).float()
 
         # Reduce resolution by res_factor
-        if self.res_factor != 1:
+        if self.res_factor != 1.:
             h, w = int(math.ceil(1920 / self.res_factor)), int(math.ceil(1920 / self.res_factor))
             sy, sx = float(h) / float(1920), float(w) / float(1920)
             image1 = F.interpolate(image1[None], [h, w], mode='bilinear', align_corners=True)[0]

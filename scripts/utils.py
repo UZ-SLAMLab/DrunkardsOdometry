@@ -1,22 +1,14 @@
 import torch
-import cv2
 from torch.utils.tensorboard import SummaryWriter
 import numpy as np
 from scipy.spatial.transform import Rotation as R  # Hamilton quaternion convention. qx, qy, qz, qw
-import torchvision
-import matplotlib.pyplot as plt
-import io
 import os
-from PIL import Image
-from torchvision.transforms import ToTensor
+import sys
+
+sys.path.append('.')
 import drunkards_odometry.projective_ops as pops
-from drunkards_odometry.sampler_ops import bilinear_sampler
-import time
-from tqdm import tqdm
 from lietorch import SE3
-from torch import nn
-from pytorch3d.transforms import quaternion_to_matrix, matrix_to_euler_angles
-from pytorch3d.transforms import matrix_to_quaternion
+
 
 
 class Logger:

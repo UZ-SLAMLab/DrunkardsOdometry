@@ -10,7 +10,8 @@ from data_readers.drunkards import DrunkDataset
 sys.path.append('.')
 
 
-def loss_fn(flow2d_est, flow2d_rev, pose_list, flow_gt, depth1, depth2, intrinsics, pose_gt, valid_mask, args, mode, gamma=0.9):
+def loss_fn(flow2d_est, flow2d_rev, pose_list, flow_gt, depth1, depth2, intrinsics, pose_gt, valid_mask, args, mode,
+            gamma=0.9):
     """ Loss function defined over sequence of flow predictions """
     fl_weight = args.fl_weight
     rv_weight = args.rv_weight
@@ -26,7 +27,7 @@ def loss_fn(flow2d_est, flow2d_rev, pose_list, flow_gt, depth1, depth2, intrinsi
     for i in range(N):
         w = gamma ** (N - i - 1)
 
-        fl_est, dz_est = flow2d_est[i].split([2, 1], dim=-1)  # fl_est is optical flow 2d in pixels, dz_est is inverse depth
+        fl_est, dz_est = flow2d_est[i].split([2, 1], dim=-1)  # fl_est optical flow 2d in pixels, dz_est inverse depth
 
         # Optical flow loss after Gauss Newton step
         # Idea of using L1 Charbonnier loss SMURF: Self-Teaching Multi-Frame Unsupervised RAFT with Full-Image Warping
@@ -50,12 +51,14 @@ def loss_fn(flow2d_est, flow2d_rev, pose_list, flow_gt, depth1, depth2, intrinsi
         else:
             pose = pose_list
 
-        pose_tra_error_ME, pose_tra_error_RMSE, pose_rot_error_ME, pose_rot_error_axisangle_module = get_pose_errors(pose, pose_gt)
+        pose_tra_error_ME, pose_tra_error_RMSE, pose_rot_error_ME, pose_rot_error_axisangle_module = \
+            get_pose_errors(pose, pose_gt)
         pose_tra_loss = pose_tra_error_ME
         pose_rot_loss = pose_rot_error_ME
 
         if i == 0:
-            pose_cnn_tra_error_ME, pose_cnn_tra_error_RMSE, pose_cnn_rot_error_ME, pose_cnn_rot_error_axisangle_module = get_pose_errors(
+            pose_cnn_tra_error_ME, pose_cnn_tra_error_RMSE, pose_cnn_rot_error_ME, pose_cnn_rot_error_axisangle_module \
+                = get_pose_errors(
                 pose_cnn, pose_gt)
             pose_cnn_tra_loss = pose_cnn_tra_error_ME
             pose_cnn_rot_loss = pose_cnn_rot_error_ME
@@ -201,21 +204,20 @@ def train(args):
     for epoch in range(start_epoch, args.num_epochs):
         print("--> Starting epoch ", str(epoch))
         for i_batch, data_blob in tqdm(enumerate(train_loader, start=start)):
-            image1_, image2_, depth1, depth2, pose_gt, intrinsics, flowxyz_gt, valid_mask, depth_scale_factor = [
-                x.to(device) for x in data_blob]
+            image1_, image2_, depth1, depth2, pose_gt, intrinsics, flowxyz_gt, valid_mask, depth_scale_factor = \
+                [x.to(device) for x in data_blob]
 
             image1 = normalize_image(image1_.float())
             image2 = normalize_image(image2_.float())
 
-            flow2d_est, flow2d_rev, pose, valid = model(
-                **dict(image1=image1, image2=image2, depth1=depth1, depth2=depth2,
-                       intrinsics=intrinsics, iters=12, train_mode=True,
-                       depth_scale_factor=depth_scale_factor))
+            flow2d_est, flow2d_rev, pose, valid = model(**dict(
+                image1=image1, image2=image2, depth1=depth1, depth2=depth2, intrinsics=intrinsics, iters=12,
+                train_mode=True, depth_scale_factor=depth_scale_factor))
 
             valid_mask *= valid.unsqueeze(-1)
 
-            loss, metrics = loss_fn(flow2d_est, flow2d_rev, pose, flowxyz_gt, depth1, depth2, intrinsics, pose_gt, valid_mask,
-                                    args, 'train')
+            loss, metrics = loss_fn(flow2d_est, flow2d_rev, pose, flowxyz_gt, depth1, depth2, intrinsics, pose_gt,
+                                    valid_mask, args, 'train')
 
             optimizer.zero_grad()
             loss.backward()
@@ -234,8 +236,8 @@ def train(args):
                         val_iter = iter(val_loader)
                         data_blob = next(val_iter)
 
-                    image1_, image2_, depth1, depth2, pose_gt, intrinsics, flowxyz_gt, valid_mask, depth_scale_factor = [
-                        x.to(device) for x in data_blob]
+                    image1_, image2_, depth1, depth2, pose_gt, intrinsics, flowxyz_gt, valid_mask, depth_scale_factor \
+                        = [x.to(device) for x in data_blob]
 
                     image1 = normalize_image(image1_.float())
                     image2 = normalize_image(image2_.float())
@@ -247,8 +249,8 @@ def train(args):
 
                     valid_mask *= valid.unsqueeze(-1)
 
-                    metrics = loss_fn(flow2d_est, flow2d_rev, pose, flowxyz_gt, depth1, depth2, intrinsics, pose_gt, valid_mask,
-                                      args, 'val')
+                    metrics = loss_fn(flow2d_est, flow2d_rev, pose, flowxyz_gt, depth1, depth2, intrinsics, pose_gt,
+                                      valid_mask, args, 'val')
 
                     logger.push_val(metrics)
 
@@ -274,20 +276,21 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', default='bla', help='name your experiment')
     parser.add_argument('--ckpt', help='checkpoint to restore')
-    parser.add_argument('--batch_size', type=int, default=4)
-    parser.add_argument('--lr', type=float, default=.0001)
-    parser.add_argument('--num_epochs', type=int, default=100)
+    parser.add_argument('--batch_size', type=int, default=12)
+    parser.add_argument('--lr', type=float, default=.0002)
+    parser.add_argument('--num_epochs', type=int, default=10)
     parser.add_argument('--datapath', type=str, required=True, help='full path to folder containing the scenes')
     parser.add_argument('--difficulty_level', type=int, choices=[0, 1, 2, 3],
                         help='drunk dataset diffculty level to use')
     parser.add_argument('--save_freq', type=int, default=1, help='number of epochs between model is saved')
     parser.add_argument('--log_freq', type=int, default=100, help='number of steps between logs are saved')
-    parser.add_argument('--res_factor', type=int, default=1, help='reduce resolution by a factor')
+    parser.add_argument('--res_factor', type=float, default=1., help='reduce resolution by a factor')
     parser.add_argument('--train_scenes', type=int, nargs='+',
                         default=[1, 2, 3, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19],
                         help='scenes used for training')
     parser.add_argument('--val_scenes', type=int, nargs='+', default=[0, 4, 5], help='scenes used for validating')
-    parser.add_argument("--save_path", type=str, help="if specified, logs and checkpoint will be saved here")
+    parser.add_argument("--save_path", type=str, help="if specified, logs and checkpoint will be saved here. "
+                        "Otherwise, stored in the project main folder")
     parser.add_argument('--fl_weight', type=float, default=1.0)
     parser.add_argument('--rv_weight', type=float, default=0.2)
     parser.add_argument('--dz_weight', type=float, default=100.0)
@@ -299,8 +302,8 @@ if __name__ == '__main__':
     parser.add_argument('--pose_bias', type=float, default=0.01,
                         help='bias to be multiplied to the estimated delta_pose of the model in each iteration.')
     parser.add_argument('--pct_start', type=float, default=0.001)
-    parser.add_argument('--invert_order_prob', type=float, default=0.5,
-                        help='probability to invert the images order in the dataloader, invert if the random probability is under this number.')
+    parser.add_argument('--invert_order_prob', type=float, default=0.5, help='probability to invert the images order '
+                        'in the dataloader, invert if the random probability is under this number.')
     parser.add_argument('--num_workers', type=int, default=4)
     parser.add_argument('--radius', type=int, default=32)
 
