@@ -321,10 +321,11 @@ class DrunkardsOdometry(nn.Module):
         pose_cnn = self.predict_poses(image1, image2)
         pose_cnn_tra, pose_cnn_rot = pose_cnn.split([3, 4], dim=-1)
 
-        if train_mode:
-            pose_cnn = (torch.cat((pose_cnn_tra * depth_scale_factor.unsqueeze(-1), pose_cnn_rot), -1)).float()
-        else: # todo corregir, esto es para cuando batch es 1 que entonces a pose_cnn le falta una dimension
-            pose_cnn = (torch.cat((pose_cnn_tra.unsqueeze(0) * depth_scale_factor.unsqueeze(-1), pose_cnn_rot.unsqueeze(0)), -1)).float()
+        if pose_cnn_tra.dim() == 1:
+            pose_cnn_tra = pose_cnn_tra.unsqueeze(0)
+            pose_cnn_rot = pose_cnn_rot.unsqueeze(0)
+
+        pose_cnn = (torch.cat((pose_cnn_tra * depth_scale_factor.unsqueeze(-1), pose_cnn_rot), -1)).float()
 
         # Invert the pose: T_2_1 -> T_1_2, and use it to initialize Ts_sta
         Ts, Ts_sta, _ = self.initializer_pose(image1, pose_cnn)

@@ -6,6 +6,7 @@ from autoclip.torch import QuantileClip
 from torch.utils.data import DataLoader
 from utils import *
 from data_readers.drunkards import DrunkDataset
+from tqdm import tqdm
 
 sys.path.append('.')
 
@@ -92,14 +93,14 @@ def loss_fn(flow2d_est, flow2d_rev, pose_list, flow_gt, depth1, depth2, intrinsi
 
     suffix = '_val' if mode == 'val' else ''
     metrics = {}
-    metrics['epe_2d' + suffix] = epe_2d.mean().item(),
-    metrics['epe_dz' + suffix] = epe_dz.mean().item(),
-    metrics['1px' + suffix] = (epe_2d < 1).float().mean().item(),
-    metrics['3px' + suffix] = (epe_2d < 3).float().mean().item(),
-    metrics['5px' + suffix] = (epe_2d < 5).float().mean().item(),
-    metrics['loss' + suffix] = loss,
-    metrics['loss_fl' + suffix] = loss_fl,
-    metrics['loss_dz' + suffix] = loss_dz,
+    metrics['epe_2d' + suffix] = epe_2d.mean().item()
+    metrics['epe_dz' + suffix] = epe_dz.mean().item()
+    metrics['1px' + suffix] = (epe_2d < 1).float().mean().item()
+    metrics['3px' + suffix] = (epe_2d < 3).float().mean().item()
+    metrics['5px' + suffix] = (epe_2d < 5).float().mean().item()
+    metrics['loss' + suffix] = loss
+    metrics['loss_fl' + suffix] = loss_fl
+    metrics['loss_dz' + suffix] = loss_dz
     metrics['loss_rv' + suffix] = loss_rv
     metrics['loss_pose_tra' + suffix] = loss_pose_tra
     metrics['loss_pose_rot' + suffix] = loss_pose_rot
@@ -109,7 +110,7 @@ def loss_fn(flow2d_est, flow2d_rev, pose_list, flow_gt, depth1, depth2, intrinsi
     metrics['pose_cnn_tra_error_RMSE' + suffix] = pose_cnn_tra_error_RMSE.item()
     metrics['pose_cnn_rot_error_ME' + suffix] = pose_cnn_rot_error_ME.item()
     metrics['pose_cnn_rot_error_axisangle_module' + suffix] = pose_cnn_rot_error_axisangle_module.item()
-    metrics['flow3d_tra_error_RMSE' + suffix] = flow3d_tra_error_RMSE.item()
+    metrics['flow3d_tra_error_RMSE' + suffix] = flow3d_tra_error_RMSE.mean().item()
     metrics['flow3d_tra_error_1cm' + suffix] = flow3d_tra_error_1cm.item()
     metrics['flow3d_tra_error_5cm' + suffix] = flow3d_tra_error_5cm.item()
     metrics['flow3d_tra_error_10cm' + suffix] = flow3d_tra_error_10cm.item()
@@ -119,7 +120,7 @@ def loss_fn(flow2d_est, flow2d_rev, pose_list, flow_gt, depth1, depth2, intrinsi
     metrics['pose_rot_error_ME' + suffix] = pose_rot_error_ME.item()
     metrics['pose_rot_error_axisangle_module' + suffix] = pose_rot_error_axisangle_module.item()
 
-    return loss, metrics if mode == 'train' else metrics
+    return (loss, metrics) if mode == 'train' else metrics
 
 
 def fetch_dataloader(args):
@@ -152,6 +153,14 @@ def fetch_optimizer(model, args):
     clipper = QuantileClip(model.parameters(), quantile=0.9, history_length=1000)
     scheduler = optim.lr_scheduler.OneCycleLR(optimizer, args.lr, args.num_steps, pct_start=0.001, cycle_momentum=False)
     return optimizer, scheduler, clipper
+
+
+def progressbar(current_value, total_value, bar_lengh, progress_char):
+    """https://stackoverflow.com/a/75033230"""
+    percentage = int((current_value / total_value) * 100)
+    progress = int((bar_lengh * current_value) / total_value)
+    loadbar = "Progress: [{:{len}}]{}%".format(progress * progress_char, percentage, len=bar_lengh)
+    print(loadbar, end='\r')
 
 
 def train(args):
@@ -203,7 +212,7 @@ def train(args):
 
     for epoch in range(start_epoch, args.num_epochs):
         print("--> Starting epoch ", str(epoch))
-        for i_batch, data_blob in tqdm(enumerate(train_loader, start=start)):
+        for i_batch, data_blob in enumerate(train_loader, start=start):
             image1_, image2_, depth1, depth2, pose_gt, intrinsics, flowxyz_gt, valid_mask, depth_scale_factor = \
                 [x.to(device) for x in data_blob]
 
@@ -218,13 +227,13 @@ def train(args):
 
             loss, metrics = loss_fn(flow2d_est, flow2d_rev, pose, flowxyz_gt, depth1, depth2, intrinsics, pose_gt,
                                     valid_mask, args, 'train')
+            total_steps = logger.push(metrics)
 
             optimizer.zero_grad()
             loss.backward()
             clipper.step()
             optimizer.step()
             scheduler.step()
-            total_steps = logger.push(metrics)
 
             # Validation
             if (total_steps - 1) % args.log_freq == args.log_freq - 1:
@@ -251,10 +260,11 @@ def train(args):
 
                     metrics = loss_fn(flow2d_est, flow2d_rev, pose, flowxyz_gt, depth1, depth2, intrinsics, pose_gt,
                                       valid_mask, args, 'val')
-
                     logger.push_val(metrics)
 
                 model.train()
+
+            progressbar(total_steps, args.num_steps, 30, '■')
 
         if (epoch + 1) % args.save_freq == 0:
             path = '%s/checkpoints/%s/%06d.pth' % (save_path, args.name, epoch)
@@ -270,6 +280,8 @@ def train(args):
                 'total_steps': total_steps,
                 'clipper': clipper.state_dict(),
             }, path)
+
+    print("   -->Done!")
 
 
 if __name__ == '__main__':

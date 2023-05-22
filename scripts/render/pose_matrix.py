@@ -36,11 +36,11 @@ def my_handler(scene):
     get_camera_pose("Camera", frameNumber)
 
 
-def progressbar(current_value,total_value,bar_lengh,progress_char):
+def progressbar(current_value, total_value, bar_lengh, progress_char):
     """https://stackoverflow.com/a/75033230"""
-    percentage = int((current_value/total_value)*100)
-    progress = int((bar_lengh * current_value ) / total_value)
-    loadbar = "Progress: [{:{len}}]{}%".format(progress*progress_char, percentage, len=bar_lengh)
+    percentage = int((current_value / total_value) * 100)
+    progress = int((bar_lengh * current_value) / total_value)
+    loadbar = "Progress: [{:{len}}]{}%".format(progress * progress_char, percentage, len=bar_lengh)
     print(loadbar, end='\r')
 
 

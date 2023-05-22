@@ -4,11 +4,9 @@ import numpy as np
 from scipy.spatial.transform import Rotation as R  # Hamilton quaternion convention. qx, qy, qz, qw
 import os
 import sys
-
 sys.path.append('.')
 import drunkards_odometry.projective_ops as pops
 from lietorch import SE3
-
 
 
 class Logger:
@@ -27,12 +25,11 @@ class Logger:
         self.writer = SummaryWriter(os.path.join(save_path, 'runs', name))
 
     def _print_training_status(self):
-
         metrics_data = [self.running_loss[k] / self.log_freq for k in sorted(self.running_loss.keys())]
-        training_str = "[{:6d}] ".format(self.total_steps + 1)
-        metrics_str = ("{:20.4f}, " * len(metrics_data)).format(*metrics_data)
+        training_str = "[{:8d}] ".format(self.total_steps + 1)
+        metrics_str = ("{:36.4f} " * len(metrics_data)).format(*metrics_data)
 
-        print(training_str + metrics_str)
+        print("TRAIN:" + training_str + metrics_str)
 
         for key in self.running_loss:
             val = self.running_loss[key] / self.log_freq
@@ -41,10 +38,10 @@ class Logger:
 
     def _print_training_status_val(self):
         metrics_data = [self.running_loss_val[k] for k in sorted(self.running_loss_val.keys())]
-        training_str = "[{:6d}] ".format(self.total_steps)
-        metrics_str = ("{:20.4f}, " * len(metrics_data)).format(*metrics_data)
+        training_str = "[{:8d}] ".format(self.total_steps)
+        metrics_str = " " * 8 + ("{:36.4f} " * len(metrics_data)).format(*metrics_data)
 
-        print("VAL: " + training_str + metrics_str)
+        print("VAL:  " + training_str + metrics_str)
 
         for key in self.running_loss_val:
             val = self.running_loss_val[key]
@@ -52,7 +49,6 @@ class Logger:
             self.running_loss_val[key] = 0.0
 
     def push(self, metrics):
-
         for key in metrics:
             if key not in self.running_loss:
                 self.running_loss[key] = 0.0
@@ -61,7 +57,7 @@ class Logger:
 
         if self.total_steps == 0:
             metrics_names = [k for k in sorted(self.running_loss.keys())]
-            print('                       ' + ("{:20}  " * len(metrics_names)).format(*metrics_names))
+            print("Mode   " + "Steps  " + ' ' * 33 + ("{:35}  " * len(metrics_names)).format(*metrics_names))
 
         if self.total_steps % self.log_freq == self.log_freq - 1:
             self._print_training_status()
@@ -83,8 +79,8 @@ class Logger:
 
 
 def normalize_image(image):
-    # Drunkard's Dataset normalization values
     image = image[:, [2, 1, 0]]
+    # Drunkard's Dataset normalization values
     mean = torch.as_tensor([157.7229, 163.4245, 169.4616], device=image.device) / 255.0
     std = torch.as_tensor([60.3560, 58.4104, 55.9718], device=image.device) / 255.0
 
@@ -138,7 +134,8 @@ def get_pose_errors(pose, pose_gt):
     pose_error_axisangle = pops.pose_from_quaternion_to_axis_angle(pose_error.vec() + 1e-8)
     pose_rot_error_axisangle_module = pose_error_axisangle[:, 3:].norm(dim=-1)
 
-    return pose_tra_error_ME.mean(), pose_tra_error_RMSE.mean(), pose_rot_error_ME.mean(), pose_rot_error_axisangle_module.mean()
+    return pose_tra_error_ME.mean(), pose_tra_error_RMSE.mean(), \
+           pose_rot_error_ME.mean(), pose_rot_error_axisangle_module.mean()
 
 
 def get_flow3d_tra_errors(flow3d_est, flow3d_gt, valid_mask, return_mean=False):

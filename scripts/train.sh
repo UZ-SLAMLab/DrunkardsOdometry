@@ -6,6 +6,6 @@ python scripts/train.py \
 --difficulty_level=1 \
 --depth_augmentor \
 --res_factor=3.2 \
---batch_size=2 \
+--batch_size=1 \
 --train_scenes 0 \
 --val_scenes 0 
