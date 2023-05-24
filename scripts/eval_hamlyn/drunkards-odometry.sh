@@ -1,11 +1,10 @@
 #!/bin/bash
 
-script_path="/home/david/GitHub/RAFT-3D_def"
+script_path="/.../DrunkardsOdometry"
 
 
-echo "###### baseline_newGt_lr0.0002_invertImagesProb0.5_trainedInLevel1_epoch9_REPEATED ######"
+echo "###### Drunkard's Odometry ######"
 python scripts/eval_hamlyn.py \
---name=baseline_newGt_lr0.0002_invertImagesProb0.5_trainedInLevel1_epoch9_REPEATED \
 --datapath=/home/david/datasets/hamlyn_for_drunk_paper \
 --ckpt=/home/david/GitHub/RAFT-3D_def/checkpoints/cluster/baseline_newGt_lr0.0002_invertImagesProb0.5Mar02_23-45-36/000009.pth \
 --gpus=1 \

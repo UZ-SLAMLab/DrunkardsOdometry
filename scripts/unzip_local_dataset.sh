@@ -1,6 +1,8 @@
 #!/bin/bash
 
-folder="/absolut_path/.../drunk_dataset"
+# Script to unzip the whole Drunkard's Dataset once it has been fully downloaded.
+
+folder="/.../drunkards_dataset"
 
 scenes="00000 00001 00002 00003 00004 00005 00006 00007 00008 00009 00010 00011 00012 00013 00014 00015 00016 00018 00019"
 

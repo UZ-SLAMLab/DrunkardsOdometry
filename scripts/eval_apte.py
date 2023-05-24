@@ -1,16 +1,11 @@
-from scipy.spatial.transform import Rotation
 import numpy as np
-from scipy.spatial.transform import Rotation as R  # Hamilton quaternion convention. qx, qy, qz, qw
 from lietorch import SE3
 import torch
 import drunkards_odometry.projective_ops as pops
 import statistics
-import math
 from tqdm import tqdm
 from matplotlib import pyplot as plt
 import os
-import argparse
-from pathlib import Path
 
 
 # Method's name dictionary: key = method's name of the trajectory .txt file; value = method's label plot
@@ -21,15 +16,15 @@ scenes = ["test1", "test17"]
 scale_factor_for_scene = {"test1": {"edam": 1.0, "droidslam": 0.3200800801484627,  "drunkards-odometry-hamlyn-w-deformation": 0.013571237526591824, "drunkards-odometry-hamlyn-wo-deformation": 0.014709639381740133},
                           "test17": {"edam": 1.0, "droidslam": 1.781018493311159, "drunkards-odometry-hamlyn-w-deformation": 0.01840149096841502, "drunkards-odometry-hamlyn-wo-deformation": 0.031742604665564916}}
 
-# Path to the folder containing the poses of all methods. It should follow this structure:
-# --> poses_path
+# root path to the folder containing the poses of all methods. It should follow this structure:
+# --> root
 #     --> scene0
 #         --> method0
-#             --> pose_est.txt
-#             --> pose_est_backward.txt
+#             --> pose_est.txt            Forward estimated camera trajectory poses
+#             --> pose_est_backward.txt   Backward estimated camera trajectory poses
 #         ...
 #     ...
-poses_path = "/media/david/DiscoDuroLinux/Datasets/evaluations_drunk/evaluations_hamlyn/open_access"
+root = "/.../evaluations_hamyln"
 
 # pose_est.txt and pose_est_backward.txt structure. One line per pose:
 # timestamp tx ty tz qx qy qz qw
@@ -40,13 +35,13 @@ for scene in scenes:
     plt.xlabel("Loop length k in number of frames")
     plt.ylabel(u'APTE\u2096')
 
-    f_metrics = open(os.path.join(poses_path, scene, "metrics.txt"), 'w')
+    f_metrics = open(os.path.join(root, scene, "metrics.txt"), 'w')
 
     for method, method_label in methods.items():
         print("###### Evaluating method {} in scene {} ######".format(method, scene))
 
-        pose_forward = os.path.join(poses_path, scene, method, "pose_est.txt")
-        pose_backward = os.path.join(poses_path, scene, method, "pose_est_backward.txt")
+        pose_forward = os.path.join(root, scene, method, "pose_est.txt")
+        pose_backward = os.path.join(root, scene, method, "pose_est_backward.txt")
         scale_factor = scale_factor_for_scene[scene][method]
 
         # Read poses
@@ -87,7 +82,6 @@ for scene in scenes:
             backward_poses.append(SE3(pose))
 
         backward_poses.reverse()
-
         apte_k_list = []
 
         for k in tqdm(range(1, len(forward_poses) + 1, 1)):
@@ -110,6 +104,6 @@ for scene in scenes:
 
     f_metrics.close()
     plt.legend(loc="upper left")
-    plt.savefig(os.path.join(poses_path, scene, 'apte.pdf'))
+    plt.savefig(os.path.join(root, scene, 'apte.pdf'))
     # plt.show()
     plt.close()

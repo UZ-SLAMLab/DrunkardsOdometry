@@ -1,4 +1,0 @@
-APTE of scene test1 by method EDaM: 0.004407628650638048
-APTE of scene test1 by method DROID-SLAM: 0.0019333443419037983
-APTE of scene test1 by method Ours w/ deformation: 0.004476884943343068
-APTE of scene test1 by method Ours w/o deformation: 0.005453334534585378
