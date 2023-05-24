@@ -347,10 +347,12 @@ class DrunkardsOdometry(nn.Module):
             Ts = Ts.detach()
             Ts_sta = Ts_sta.detach()
 
-            coords1_xyz, _ = pops.projective_transform(Ts, depth1_r8, intrinsics_r8)  # Invese estimated depth2 (by Ts and groundtruth depth1) para cada uno de los pixeles de la camara 1
+            # Estimated invese depth2 by Ts and groundtruth depth1 for each pixel of camera 1
+            coords1_xyz, _ = pops.projective_transform(Ts, depth1_r8, intrinsics_r8)
 
             coords1, zinv_proj = coords1_xyz.split([2, 1], dim=-1)
-            zinv, _ = depth_sampler(1.0 / depth2_r8, coords1)  # inverse groundtruth depth2 warped to camera 1 using the pixel correspondeces by Ts, es decir, la profundiadad de los pixeles de la camara 2 que corresponden a los pixeles de la camara 1
+            # Inverse ground truth depth2 projected to camera 1 using the pixel correspondeces by Ts, es decir, la profundiadad de los pixeles de la camara 2 que corresponden a los pixeles de la camara 1
+            zinv, _ = depth_sampler(1.0 / depth2_r8, coords1)
 
             corr = corr_fn(coords1.permute(0, 3, 1, 2).contiguous())
             flow = coords1 - coords0
@@ -383,7 +385,7 @@ class DrunkardsOdometry(nn.Module):
                 pose_list.append(self.invert_pose(image1, pose.vec().squeeze()))
 
         if train_mode:
-            _, _, valid = pops.induced_flow(Ts_up, depth1, intrinsics)
+            _, _, valid = pops.induced_flow(Ts_up, depth1, intrinsics, min_depth=0.01, max_depth=30.0)
             valid = valid > 0.5
 
             pose_list.append(pose_cnn)

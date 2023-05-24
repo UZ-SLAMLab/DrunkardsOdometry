@@ -5,8 +5,6 @@ from pytorch3d.transforms import matrix_to_quaternion, quaternion_to_matrix, qua
 
 from .sampler_ops import *
 
-MIN_DEPTH = 0.01  # 0.05  # TODO: Poner aqui 0.01 metros? O no son metros?
-MAX_DEPTH = 30.0
 
 def project(Xs, intrinsics):
     """ Pinhole camera projection """
@@ -38,17 +36,17 @@ def inv_project(depths, intrinsics):
 
     return torch.stack([X, Y, Z], dim=-1)
 
-def projective_transform(Ts, depth, intrinsics):
+def projective_transform(Ts, depth, intrinsics, min_depth=0.01, max_depth=30.0):
     """ Project points from I1 to I2 """
     
     X0 = inv_project(depth, intrinsics)
     X1 = Ts * X0
     x1 = project(X1, intrinsics)
 
-    valid = (X0[...,-1] > MIN_DEPTH) & (X1[...,-1] > MIN_DEPTH) & (X0[...,-1] < MAX_DEPTH) & (X1[...,-1] < MAX_DEPTH)
+    valid = (X0[...,-1] > min_depth) & (X1[...,-1] > min_depth) & (X0[...,-1] < max_depth) & (X1[...,-1] < max_depth)
     return x1, valid.float()
 
-def induced_flow(Ts, depth, intrinsics):
+def induced_flow(Ts, depth, intrinsics, min_depth=0.01, max_depth=30.0):
     """ Compute 2d and 3d flow fields """
 
     X0 = inv_project(depth, intrinsics)
@@ -60,7 +58,7 @@ def induced_flow(Ts, depth, intrinsics):
     flow2d = x1 - x0
     flow3d = X1 - X0
 
-    valid = (X0[...,-1] > MIN_DEPTH) & (X1[...,-1] > MIN_DEPTH) & (X0[...,-1] < MAX_DEPTH) & (X1[...,-1] < MAX_DEPTH)
+    valid = (X0[...,-1] > min_depth) & (X1[...,-1] > min_depth) & (X0[...,-1] < max_depth) & (X1[...,-1] < max_depth)
     return flow2d, flow3d, valid.float()
 
 

@@ -51,7 +51,7 @@ def test(model, scene, args):
                depth_scale_factor=depth_scale_factor))
 
         # Uncomment if you want 2D and 3D flow and valid flow pixels
-        # flow2d_est, flow3d_est, valid = pops.induced_flow(Ts, depth1, intrinsics)
+        # flow2d_est, flow3d_est, valid = pops.induced_flow(Ts, depth1, intrinsics, min_depth=0.01, max_depth=0.3)
         # valid = valid > 0.5
         # valid_mask *= valid.unsqueeze(-1)
 

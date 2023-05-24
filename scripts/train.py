@@ -1,12 +1,12 @@
 import sys
 import argparse
 import torch.optim as optim
+import re
 
 from autoclip.torch import QuantileClip
 from torch.utils.data import DataLoader
 from utils import *
 from data_readers.drunkards import DrunkDataset
-from tqdm import tqdm
 
 sys.path.append('.')
 
@@ -154,6 +154,22 @@ def fetch_optimizer(model, args):
     scheduler = optim.lr_scheduler.OneCycleLR(optimizer, args.lr, args.num_steps, pct_start=0.001, cycle_momentum=False)
     return optimizer, scheduler, clipper
 
+def optimizer_to(optim, device):
+    """https://github.com/pytorch/pytorch/issues/8741#issuecomment-402129385"""
+    # move optimizer to device
+    for param in optim.state.values():
+        # Not sure there are any global tensors in the state dict
+        if isinstance(param, torch.Tensor):
+            param.data = param.data.to(device)
+            if param._grad is not None:
+                param._grad.data = param._grad.data.to(device)
+        elif isinstance(param, dict):
+            for subparam in param.values():
+                if isinstance(subparam, torch.Tensor):
+                    subparam.data = subparam.data.to(device)
+                    if subparam._grad is not None:
+                        subparam._grad.data = subparam._grad.data.to(device)
+
 
 def progressbar(current_value, total_value, bar_lengh, progress_char):
     """https://stackoverflow.com/a/75033230"""
@@ -168,7 +184,7 @@ def train(args):
 
     MODEL = importlib.import_module('drunkards_odometry.model').DrunkardsOdometry
     model = MODEL(args)
-    # model = torch.nn.DataParallel(model) # todo iguial no hace falta
+    device = torch.device("cuda")
 
     train_loader, val_loader = fetch_dataloader(args)
     val_iter = iter(val_loader)
@@ -178,26 +194,41 @@ def train(args):
     start_epoch = 0
     total_steps = 0
     create_new_name = True
+
     if args.save_path:
         save_path = args.save_path
     else:
         save_path = os.getcwd()
 
+    if args.continue_training_from_ckpt:
+        assert args.ckpt, "To continue the training, a checkpoint must be provided."
+
     if args.ckpt:
-        args.name = os.path.basename(os.path.split(args.ckpt)[0])
-        create_new_name = False
         checkpoint = torch.load(args.ckpt)
         model.load_state_dict(checkpoint['model_state_dict'], strict=False)
-        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
-        start_epoch = checkpoint['epoch'] + 1
-        loss = checkpoint['loss']
-        total_steps = checkpoint['total_steps']
-        clipper = QuantileClip(model.parameters())
-        if 'clipper.pth' in checkpoint:
-            clipper.load_state_dict(checkpoint['clipper.pth'])
 
-    if not os.path.isdir('%s/checkpoints/%s' % (save_path, args.name)):
+        if args.continue_training_from_ckpt:
+            optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            optimizer_to(optimizer, device)
+            scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+            loss = checkpoint['loss']
+            total_steps = checkpoint['total_steps']
+            clipper = QuantileClip(model.parameters())
+            clipper.load_state_dict(checkpoint['clipper'])
+            start_epoch = checkpoint['epoch'] + 1
+
+            assert start_epoch < args.num_epochs, \
+                f"The loaded model has already been trained for at least {args.num_epochs}."
+
+            if re.search(r'^\d{6}\.pth$', os.path.split(args.ckpt)[1]):
+                args.name = os.path.basename(os.path.split(args.ckpt)[0])
+            else:
+                args.name = os.path.splitext(os.path.split(args.ckpt)[1])[0]
+
+            create_new_name = False
+
+    if not os.path.isdir('%s/checkpoints/%s' % (save_path, args.name)) and \
+            not os.path.isdir('%s/runs/%s' % (save_path, args.name)):
         os.makedirs('%s/checkpoints/%s' % (save_path, args.name))
     elif create_new_name:
         from datetime import datetime
@@ -206,7 +237,7 @@ def train(args):
         os.makedirs('%s/checkpoints/%s' % (save_path, args.name))
 
     logger = Logger(args.name, total_steps, args.save_path, args.log_freq)
-    device = torch.device("cuda")
+
     model.to(device)
     model.train()
 
@@ -269,7 +300,6 @@ def train(args):
         if (epoch + 1) % args.save_freq == 0:
             path = '%s/checkpoints/%s/%06d.pth' % (save_path, args.name, epoch)
             clipper = QuantileClip(model.parameters())
-            torch.save(clipper.state_dict(), 'clipper.pth')
 
             torch.save({
                 'epoch': epoch,
@@ -287,7 +317,8 @@ def train(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', default='bla', help='name your experiment')
-    parser.add_argument('--ckpt', help='checkpoint to restore')
+    parser.add_argument('--ckpt', type=str, help='checkpoint to restore')
+    parser.add_argument('--continue_training_from_ckpt', action="store_true", help='continue training from loaded model. Total steps, optimizer, scheduler, loss, clipper and number of trained epochs are restored from checkpoint')
     parser.add_argument('--batch_size', type=int, default=12)
     parser.add_argument('--lr', type=float, default=.0002)
     parser.add_argument('--num_epochs', type=int, default=10)

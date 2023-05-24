@@ -27,7 +27,7 @@ class Logger:
     def _print_training_status(self):
         metrics_data = [self.running_loss[k] / self.log_freq for k in sorted(self.running_loss.keys())]
         training_str = "[{:8d}] ".format(self.total_steps + 1)
-        metrics_str = ("{:36.4f} " * len(metrics_data)).format(*metrics_data)
+        metrics_str = ("{:<36.4f} " * len(metrics_data)).format(*metrics_data)
 
         print("TRAIN:" + training_str + metrics_str)
 
@@ -39,7 +39,7 @@ class Logger:
     def _print_training_status_val(self):
         metrics_data = [self.running_loss_val[k] for k in sorted(self.running_loss_val.keys())]
         training_str = "[{:8d}] ".format(self.total_steps)
-        metrics_str = " " * 8 + ("{:36.4f} " * len(metrics_data)).format(*metrics_data)
+        metrics_str = " " * 8 + ("{:<36.4f} " * len(metrics_data)).format(*metrics_data)
 
         print("VAL:  " + training_str + metrics_str)
 
@@ -57,7 +57,7 @@ class Logger:
 
         if self.total_steps == 0:
             metrics_names = [k for k in sorted(self.running_loss.keys())]
-            print("Mode   " + "Steps  " + ' ' * 33 + ("{:35}  " * len(metrics_names)).format(*metrics_names))
+            print("Mode   " + "Steps  " + ' ' * 3 + ("{:35}  " * len(metrics_names)).format(*metrics_names))
 
         if self.total_steps % self.log_freq == self.log_freq - 1:
             self._print_training_status()

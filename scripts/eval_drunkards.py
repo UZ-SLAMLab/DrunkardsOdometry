@@ -8,6 +8,7 @@ from data_readers.drunkards import DrunkDataset
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from utils import *
+from tqdm import tqdm
 
 
 def prepare_images_and_depths(image1, image2, depth1, depth2):
@@ -34,7 +35,7 @@ def prepare_images_and_depths(image1, image2, depth1, depth2):
 def compute_errors(Ts, pose, flow_gt, depth1, depth2, intrinsics, pose_gt, valid_mask, metrics, count_all):
     """ Loss function defined over sequence of flow predictions """
     # Use transformation field to extract 2D and 3D flow
-    flow2d_est, flow3d_est, valid = pops.induced_flow(Ts, depth1, intrinsics)
+    flow2d_est, flow3d_est, valid = pops.induced_flow(Ts, depth1, intrinsics, min_depth=0.01, max_depth=30.0)
     valid = valid > 0.5
     valid_mask *= valid.unsqueeze(-1)
 
@@ -157,7 +158,6 @@ if __name__ == '__main__':
     import importlib
 
     model = importlib.import_module('drunkards_odometry.model').DrunkardsOdometry
-    # model = torch.nn.DataParallel(model(args))  #todo igual no hace falta
     checkpoint = torch.load(args.ckpt)
     model.load_state_dict(checkpoint['model_state_dict'], strict=False)
     model.cuda()
