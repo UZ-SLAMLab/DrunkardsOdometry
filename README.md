@@ -3,7 +3,7 @@
 <center><img src="assets/Overview_drunk.jpg" width="540" style="center"></center>
 
 [The Drunkard’s Odometry: Frame-to-frame Camera Motion in Deforming Scenes]()  
-David Recasens, Martin R. Oswald
+David Recasens, Martin R. Oswald, Javier Civera
 
 
 ## 💭 About
