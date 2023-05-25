@@ -45,13 +45,13 @@ def test(model, scene, args):
         # pad and normalize images
         image1, image2, depth1, depth2 = prepare_images_and_depths(image1, image2, depth1, depth2)
 
-        Ts, pose = model(
+        T, pose = model(
         **dict(image1=image1, image2=image2, depth1=depth1, depth2=depth2,
                intrinsics=intrinsics, iters=12, train_mode=False,
                depth_scale_factor=depth_scale_factor))
 
         # Uncomment if you want 2D and 3D flow and valid flow pixels
-        # flow2d_est, flow3d_est, valid = pops.induced_flow(Ts, depth1, intrinsics, min_depth=0.01, max_depth=0.3)
+        # flow2d_est, flow3d_est, valid = pops.induced_flow(T, depth1, intrinsics, min_depth=0.01, max_depth=0.3)
         # valid = valid > 0.5
         # valid_mask *= valid.unsqueeze(-1)
 

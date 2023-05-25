@@ -13,7 +13,7 @@ The Drunkard’s Dataset is a challenging collection of synthetic data targeting
 
 ## ⚙️ Setup
 
-We have ran our experiments under CUDA 9.1.85, CuDNN 7.6.5 and Ubuntu 18.04. We recommend create a virtual environment with Python 3.7 using [Anaconda](https://www.anaconda.com/download/) `conda create -n edam python=3.7` and install the dependencies as
+We have ran our experiments under CUDA 9.1.85, CuDNN 7.6.5 and Ubuntu 18.04 and (check eth cluster). We recommend create a virtual environment with Python 3.7 using [Anaconda](https://www.anaconda.com/download/) `conda create -n edam python=3.7` and install the dependencies as
 ```shell
 pip3 install -r path/to/DrunkardsOdometry/requirements.txt
 ```

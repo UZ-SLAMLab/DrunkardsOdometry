@@ -122,8 +122,9 @@ class DrunkDataset(data.Dataset):
 
         # Reduce resolution by res_factor
         if self.res_factor != 1.:
-            h, w = int(math.ceil(1920 / self.res_factor)), int(math.ceil(1920 / self.res_factor))
-            sy, sx = float(h) / float(1920), float(w) / float(1920)
+            h_i, w_i = depth1.shape
+            h, w = int(math.ceil(h_i / self.res_factor)), int(math.ceil(w_i / self.res_factor))
+            sy, sx = float(h) / float(h_i), float(w) / float(w_i)
             image1 = F.interpolate(image1[None], [h, w], mode='bilinear', align_corners=True)[0]
             image2 = F.interpolate(image2[None], [h, w], mode='bilinear', align_corners=True)[0]
             depth1 = F.interpolate(depth1[None, None], [h, w], mode='bilinear', align_corners=True)[0, 0]

@@ -182,70 +182,41 @@ class DrunkardsOdometry(nn.Module):
         self.pose_encoder = ResnetEncoder(18, pretrained=True, num_input_images=2)
         self.pose_decoder = PoseDecoder(self.pose_encoder.num_ch_enc, num_input_features=1, num_frames_to_predict_for=2)
 
-    def initializer(self, image):
-        """ Initialize coords, transformation maps and camera pose"""
+    def initializer(self, depth):
+        """ Initialize rigid motion embeddings (ae) and coords"""
+        batch_size, ht, wd = depth.shape
+        device = depth.device
 
-        batch_size, ch, ht, wd = image.shape
-        device = image.device
-
-        y0, x0 = torch.meshgrid(torch.arange(ht // 8), torch.arange(wd // 8))
+        y0, x0 = torch.meshgrid(torch.arange(ht), torch.arange(wd))
         coords0 = torch.stack([x0, y0], dim=-1).float()
         coords0 = coords0[None].repeat(batch_size, 1, 1, 1).to(device)
 
-        Ts = SE3.Identity(batch_size, ht // 8, wd // 8, device=device)
-        Ts_sta = SE3.Identity(batch_size, ht // 8, wd // 8, device=device)
+        ae = torch.zeros(batch_size, 16, ht, wd, device=device)
 
-        pose = SE3.Identity(batch_size, 1, 1, device=device)
+        return ae, coords0
 
-        ae = torch.zeros(batch_size, 16, ht // 8, wd // 8, device=device)
-
-        return Ts, Ts_sta, ae, coords0, pose
-
-    def single_to_dense(self, pose, Ts):
-        """ Repeat an equal transformation for every pixel in each image.
+    def single_to_dense(self, pose, T):
+        """
+        Repeat an equal transformation for every pixel in the image.
         Input: pose in quaternions: tx, ty, tz, qx, qy, qz, qw
         """
-        if pose.dim() == 1:
+        if pose.dim() == 1:  # Single tensor case
             pose = pose.unsqueeze(0)
 
-        batch_size, ht, wd = Ts.shape
-        device = Ts.device
-
+        batch_size, ht, wd = T.shape
         numel = np.prod((ht, wd))
-        for i in range(batch_size):
-            if i == 0:
-                data = pose[i].repeat(numel, 1)
-            else:
-                data = torch.cat((data, pose[i].repeat(numel, 1)), 0)
-        Ts_sta = SE3(data).view((batch_size, ht, wd))
+        data = torch.cat([pose[i].repeat(numel, 1) for i in range(batch_size)], dim=0)
+        T_pose = SE3(data).view((batch_size, ht, wd))
 
-        return Ts_sta
-
-    def single_to_dense_v2(self, pose, Ts):
-        """ Repeat an equal transformation for every pixel in each image.
-        Input: pose in twist: tx, ty, tz, qx, qy, qz
-        """
-        batch_size, ht, wd = Ts.shape
-        device = Ts.device
-
-        numel = np.prod((ht, wd))
-        for i in range(batch_size):
-            if i == 0:
-                data = pose[i].repeat(numel, 1)
-            else:
-                data = torch.cat((data, pose[i].repeat(numel, 1)), 0)
-        twist = data.view((batch_size, ht, wd, 6)).to(device)
-
-        return twist
-
+        return T_pose
 
     def features_and_correlation(self, image1, image2):
-        # extract features and build correlation volume
+        # Extract features and build correlation volume
         fmap1, fmap2 = self.fnet([image1, image2])
 
         corr_fn = CorrBlock(fmap1, fmap2, radius=self.corr_radius)
 
-        # extract context features using Resnet50
+        # Extract context features using Resnet50
         net_inp = self.cnet(image1)
         net, inp = net_inp.split([128, 128 * 3], dim=1)
 
@@ -254,144 +225,123 @@ class DrunkardsOdometry(nn.Module):
 
         return corr_fn, net, inp
 
-    def invert_pose(self, image1, T_2_1):
-        """Invert pose"""
-        batch_size, ch, ht, wd = image1.shape
-        device = image1.device  # TODO YO CREO QUE NO HACE FALTA ESTO, APLICARLE EL TODEVICE A T_2_11 ANTES DE LA FUNCION
+    def invert_pose(self, pose_2_1):
+        """ Invert pose """
+        if pose_2_1.dim() == 1:  # Single tensor case
+            batch_size = 1
+        else:
+            batch_size, _ = pose_2_1.shape
 
-        T_2_1 = pops.pose_from_quat_to_matrix(T_2_1).to(device)
-        for i in range(batch_size):
-            if i == 0:
-                T_1_2 = torch.inverse(T_2_1[i]).unsqueeze(0)
-            else:
-                T_1_2 = torch.cat((T_1_2, torch.inverse(T_2_1[i]).unsqueeze(0)), 0)
-        T_1_2 = pops.pose_from_matrix_to_quat(T_1_2)
+        pose_2_1 = pops.pose_from_quat_to_matrix(pose_2_1)
+        pose_1_2 = torch.stack([torch.inverse(pose_2_1[i]) for i in range(batch_size)], dim=0)
+        pose_1_2 = pops.pose_from_matrix_to_quat(pose_1_2)
 
-        return T_1_2
+        return pose_1_2
 
-    def initializer_pose(self, image1, pose):
+    def initializer_scene_flow(self, depth, pose_2_1):
         """ Initialize coords and transformation maps """
-        batch_size, ch, ht, wd = image1.shape
-        device = image1.device
-
-        numel = np.prod((ht // 8, wd // 8))
+        batch_size, ht, wd = depth.shape
+        device = depth.device
+        numel = np.prod((ht, wd))
 
         # Invert pose
-        T_2_1 = pose
-        T_2_1 = pops.pose_from_quat_to_matrix(T_2_1).to(device)
-        for i in range(batch_size):
-            if i == 0:
-                T_1_2 = torch.inverse(T_2_1[i]).unsqueeze(0)
-            else:
-                T_1_2 = torch.cat((T_1_2, torch.inverse(T_2_1[i]).unsqueeze(0)), 0)
-        T_1_2 = pops.pose_from_matrix_to_quat(T_1_2)
-        pose = T_1_2
+        pose_2_1 = pops.pose_from_quat_to_matrix(pose_2_1).to(device)
+        pose_1_2 = torch.stack([torch.inverse(pose_2_1[i]) for i in range(batch_size)], dim=0)
+        pose_1_2 = pops.pose_from_matrix_to_quat(pose_1_2)
 
-        for i in range(batch_size):
-            if i == 0:
-                data = pose[i].repeat(numel, 1)
-            else:
-                data = torch.cat((data, pose[i].repeat(numel, 1)), 0)
+        data = torch.cat([pose_1_2[i].repeat(numel, 1) for i in range(batch_size)], dim=0)
+        T = SE3(data).view((batch_size, ht, wd))
+        T_pose = SE3(data).view((batch_size, ht, wd))
 
-        Ts = SE3(data).view((batch_size, ht // 8, wd // 8))
-        Ts_sta = SE3(data).view((batch_size, ht // 8, wd // 8))
+        return T, T_pose
 
-        return Ts, Ts_sta, pose
-
-    def predict_poses(self, image1, image2):
-        """Predict pose between two input frames
-        """
+    def predict_pose(self, image1, image2):
+        """ Predict pose between two RGB frames """
         pose_inputs = [image1, image2]
-
         pose_inputs = [self.pose_encoder(torch.cat(pose_inputs, 1))]
         rotation, translation = self.pose_decoder(pose_inputs)
 
-        # Estimate in log
+        # Model estimates in logarithmic space, we map it to quaternions through exponential map
         rotation = rotation[:, 0].clone().squeeze()
         translation = translation[:, 0].clone().squeeze()
         pose = torch.cat((translation, rotation), -1)
         pose = SE3.exp(pose).vec()
 
-        return pose  # quaternions
+        if pose.dim() == 1:
+            pose = pose.unsqueeze(0)
 
-    def forward(self, image1, image2, depth1, depth2, intrinsics, iters=12, train_mode=False,
-                depth_scale_factor=1.0):
+        return pose
+
+    def forward(self, image1, image2, depth1, depth2, intrinsics, iters=12, train_mode=False, depth_scale_factor=1.0):
         """ Estimate optical flow between pair of frames """
-        # Estimate an initial guess of the relative camera pose to pass from cam1 to cam2
-        pose_cnn = self.predict_poses(image1, image2)
-        pose_cnn_tra, pose_cnn_rot = pose_cnn.split([3, 4], dim=-1)
-
-        if pose_cnn_tra.dim() == 1:
-            pose_cnn_tra = pose_cnn_tra.unsqueeze(0)
-            pose_cnn_rot = pose_cnn_rot.unsqueeze(0)
-
-        pose_cnn = (torch.cat((pose_cnn_tra * depth_scale_factor.unsqueeze(-1), pose_cnn_rot), -1)).float()
-
-        # Invert the pose: T_2_1 -> T_1_2, and use it to initialize Ts_sta
-        Ts, Ts_sta, _ = self.initializer_pose(image1, pose_cnn)
-        _, _, ae, coords0, _ = self.initializer(image1)
-        pose = SE3(pose_cnn.unsqueeze(1).unsqueeze(1))
-
-        corr_fn, net, inp = self.features_and_correlation(image1, image2)
-
         # Intrinsics and depth at 1/8 resolution
         intrinsics_r8 = intrinsics / 8.0
         depth1_r8 = depth1[:, 3::8, 3::8]
         depth2_r8 = depth2[:, 3::8, 3::8]
+
+        # Estimate an initial guess of the relative camera pose to transform from cam1 to cam2
+        pose_cnn = self.predict_pose(image1, image2)
+        pose_cnn_tra, pose_cnn_rot = pose_cnn.split([3, 4], dim=-1)
+        pose_cnn = (torch.cat((pose_cnn_tra * depth_scale_factor.unsqueeze(-1), pose_cnn_rot), -1)).float()
+
+        # Invert the pose (pose_2_1 -> pose_1_2) and use it to initialize the scene flow due to the camera movement (T_pose)
+        T, T_pose = self.initializer_scene_flow(depth1_r8, pose_cnn)
+        ae, coords0 = self.initializer(depth1_r8)
+        pose = SE3(pose_cnn.unsqueeze(1).unsqueeze(1))
+
+        corr_fn, net, inp = self.features_and_correlation(image1, image2)
 
         flow_est_list = []
         flow_rev_list = []
         pose_list = []
 
         for itr in range(iters):
-            Ts = Ts.detach()
-            Ts_sta = Ts_sta.detach()
+            T = T.detach()
+            T_pose = T_pose.detach()
 
-            # Estimated invese depth2 by Ts and groundtruth depth1 for each pixel of camera 1
-            coords1_xyz, _ = pops.projective_transform(Ts, depth1_r8, intrinsics_r8)
-
+            # Estimated pixel correspondence and inverse depth2 by T and ground truth depth1 for each pixel of camera 1
+            coords1_xyz, _ = pops.projective_transform(T, depth1_r8, intrinsics_r8)
             coords1, zinv_proj = coords1_xyz.split([2, 1], dim=-1)
-            # Inverse ground truth depth2 projected to camera 1 using the pixel correspondeces by Ts, es decir, la profundiadad de los pixeles de la camara 2 que corresponden a los pixeles de la camara 1
+
+            # Ground truth inverse depth2 projected to camera 1 using the estimated pixel correspondences
             zinv, _ = depth_sampler(1.0 / depth2_r8, coords1)
 
             corr = corr_fn(coords1.permute(0, 3, 1, 2).contiguous())
-            flow = coords1 - coords0
+            flow2d = coords1 - coords0
 
-            dz = zinv.unsqueeze(-1) - zinv_proj  # error of inverse depth2, pero uno no esta en camera coordinate 2 y otro en el 1???
-            twist = Ts.log()
-            twist_pose = Ts_sta.log()
+            dz = zinv.unsqueeze(-1) - zinv_proj
+            twist = T.log()
+            twist_pose = T_pose.log()
 
-            net, mask, ae, delta, delta_pose, weight = self.update_block(net, inp, corr, flow, dz, twist, twist_pose, ae)
+            net, mask, ae, delta, delta_pose, weight = self.update_block(net, inp, corr, flow2d, dz, twist, twist_pose, ae)
 
             # Apply rectifications
             target = coords1_xyz.permute(0, 3, 1, 2) + delta
             target = target.contiguous()
 
-            # Pose rot como log map
+            # Model estimates the pose updates in logarithmic space, we map it to quaternions through exponential map
             pose = SE3.exp(delta_pose.permute(0, 2, 3, 1).contiguous()) * pose
+            T_pose = self.single_to_dense(pose.vec().squeeze(), T)
 
             # Gauss-Newton step
-            Ts = se3_field.step_inplace(Ts, ae, target, weight, depth1_r8, intrinsics_r8)
+            T = se3_field.step_inplace(T, ae, target, weight, depth1_r8, intrinsics_r8)
 
             if train_mode:
                 flow2d_rev = target.permute(0, 2, 3, 1)[..., :2] - coords0
                 flow2d_rev = se3_field.cvx_upsample(8 * flow2d_rev, mask)
 
-                Ts_up = se3_field.upsample_se3(Ts, mask)  # up means upsampled to full original resolution
-                flow2d_est, flow3d_est, _ = pops.induced_flow(Ts_up, depth1, intrinsics)
+                T_up = se3_field.upsample_se3(T, mask)  # T upsampled to original resolution
+                flow2d_est, flow3d_est, _ = pops.induced_flow(T_up, depth1, intrinsics)
 
                 flow_est_list.append(flow2d_est)
                 flow_rev_list.append(flow2d_rev)
-                pose_list.append(self.invert_pose(image1, pose.vec().squeeze()))
+                pose_list.append(self.invert_pose(pose.vec().squeeze()))
 
         if train_mode:
-            _, _, valid = pops.induced_flow(Ts_up, depth1, intrinsics, min_depth=0.01, max_depth=30.0)
+            _, _, valid = pops.induced_flow(T_up, depth1, intrinsics, min_depth=0.01, max_depth=30.0)
             valid = valid > 0.5
-
-            pose_list.append(pose_cnn)
-
+            pose_list.append(pose_cnn)  # Append the estimated camera pose by the initializer cnn to the last position
             return flow_est_list, flow_rev_list, pose_list, valid
 
-        Ts_up = se3_field.upsample_se3(Ts, mask)
-
-        return Ts_up, self.invert_pose(image1, pose.vec().squeeze())
+        T_up = se3_field.upsample_se3(T, mask)
+        return T_up, self.invert_pose(pose.vec().squeeze())

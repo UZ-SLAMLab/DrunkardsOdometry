@@ -32,10 +32,10 @@ def prepare_images_and_depths(image1, image2, depth1, depth2):
     return image1, image2, depth1, depth2
 
 
-def compute_errors(Ts, pose, flow_gt, depth1, depth2, intrinsics, pose_gt, valid_mask, metrics, count_all):
+def compute_errors(T, pose, flow_gt, depth1, depth2, intrinsics, pose_gt, valid_mask, metrics, count_all):
     """ Loss function defined over sequence of flow predictions """
     # Use transformation field to extract 2D and 3D flow
-    flow2d_est, flow3d_est, valid = pops.induced_flow(Ts, depth1, intrinsics, min_depth=0.01, max_depth=30.0)
+    flow2d_est, flow3d_est, valid = pops.induced_flow(T, depth1, intrinsics, min_depth=0.01, max_depth=30.0)
     valid = valid > 0.5
     valid_mask *= valid.unsqueeze(-1)
 
@@ -109,12 +109,12 @@ def test(model, scene, args):
         # pad and normalize images
         image1, image2, depth1, depth2 = prepare_images_and_depths(image1, image2, depth1, depth2)
 
-        Ts, pose = model(
+        T, pose = model(
             **dict(image1=image1, image2=image2, depth1=depth1, depth2=depth2,
                    intrinsics=intrinsics, iters=12, train_mode=False,
                    depth_scale_factor=depth_scale_factor))
 
-        metrics, count_all = compute_errors(Ts, pose, flowxyz_gt, depth1, depth2, intrinsics, pose_gt, valid_mask, metrics, count_all)
+        metrics, count_all = compute_errors(T, pose, flowxyz_gt, depth1, depth2, intrinsics, pose_gt, valid_mask, metrics, count_all)
 
         # Write absolut transformation poses in world-to-camera format (T_w_c)
         pose = pose.squeeze().cpu().detach().numpy()

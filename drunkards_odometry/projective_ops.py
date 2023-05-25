@@ -18,9 +18,9 @@ def project(Xs, intrinsics):
     coords = torch.stack([x, y, d], dim=-1)
     return coords
 
+
 def inv_project(depths, intrinsics):
     """ Pinhole camera inverse-projection """
-
     ht, wd = depths.shape[-2:]
     
     fx, fy, cx, cy = \
@@ -36,21 +36,21 @@ def inv_project(depths, intrinsics):
 
     return torch.stack([X, Y, Z], dim=-1)
 
-def projective_transform(Ts, depth, intrinsics, min_depth=0.01, max_depth=30.0):
+
+def projective_transform(T, depth, intrinsics, min_depth=0.01, max_depth=30.0):
     """ Project points from I1 to I2 """
-    
     X0 = inv_project(depth, intrinsics)
-    X1 = Ts * X0
+    X1 = T * X0
     x1 = project(X1, intrinsics)
 
     valid = (X0[...,-1] > min_depth) & (X1[...,-1] > min_depth) & (X0[...,-1] < max_depth) & (X1[...,-1] < max_depth)
     return x1, valid.float()
 
-def induced_flow(Ts, depth, intrinsics, min_depth=0.01, max_depth=30.0):
-    """ Compute 2d and 3d flow fields """
 
+def induced_flow(T, depth, intrinsics, min_depth=0.01, max_depth=30.0):
+    """ Compute 2d and 3d flow fields """
     X0 = inv_project(depth, intrinsics)
-    X1 = Ts * X0
+    X1 = T * X0
 
     x0 = project(X0, intrinsics)
     x1 = project(X1, intrinsics)
@@ -63,19 +63,27 @@ def induced_flow(Ts, depth, intrinsics, min_depth=0.01, max_depth=30.0):
 
 
 def backproject_flow3d(flow2d, depth0, depth1, intrinsics):
-    """ compute 3D flow from 2D flow + depth change """
+    """ Compute 3D flow from 2D flow + depth change"""
+    if flow2d.dim() == 3:  # Single tensor case
+        ht, wd = flow2d.shape[0], flow2d.shape[1]
+        fx, fy, cx, cy = intrinsics[None].unbind(dim=-1)
+        y0, x0 = torch.meshgrid(
+            torch.arange(ht).to(depth0.device).float(),
+            torch.arange(wd).to(depth0.device).float()
+        )
+    else:  # Batch tensor case
+        batch_size, ht, wd = flow2d.shape[0], flow2d.shape[1], flow2d.shape[2]
+        fx, fy, cx, cy = intrinsics.unbind(dim=-1)
 
-    ht, wd = flow2d.shape[0:2]
+        y0, x0 = torch.meshgrid(
+            torch.arange(ht).to(depth0.device).float(),
+            torch.arange(wd).to(depth0.device).float()
+        )
+        x0 = x0.unsqueeze(0).repeat(batch_size, 1, 1)
+        y0 = y0.unsqueeze(0).repeat(batch_size, 1, 1)
 
-    fx, fy, cx, cy = \
-        intrinsics[None].unbind(dim=-1)
-    
-    y0, x0 = torch.meshgrid(
-        torch.arange(ht).to(depth0.device).float(), 
-        torch.arange(wd).to(depth0.device).float())
-
-    x1 = x0 + flow2d[...,0]
-    y1 = y0 + flow2d[...,1]
+    x1 = x0 + flow2d[..., 0]
+    y1 = y0 + flow2d[..., 1]
 
     X0 = depth0 * ((x0 - cx) / fx)
     Y0 = depth0 * ((y0 - cy) / fy)
@@ -85,7 +93,7 @@ def backproject_flow3d(flow2d, depth0, depth1, intrinsics):
     Y1 = depth1 * ((y1 - cy) / fy)
     Z1 = depth1
 
-    flow3d = torch.stack([X1-X0, Y1-Y0, Z1-Z0], dim=-1)
+    flow3d = torch.stack([X1 - X0, Y1 - Y0, Z1 - Z0], dim=-1)
     return flow3d
 
 
@@ -106,10 +114,11 @@ def absolut_to_relative_poses(pose1, pose2):
     tx2, ty2, tz2 = pose2[0], pose2[1], pose2[2]
     qx1, qy1, qz1, qw1 = pose1[3], pose1[4], pose1[5], pose1[6]
     qx2, qy2, qz2, qw2 = pose2[3], pose2[4], pose2[5], pose2[6]
-    rot_matrix1 = R.from_quat([qx1, qy1, qz1, qw1]).as_matrix()
-    rot_matrix2 = R.from_quat([qx2, qy2, qz2, qw2]).as_matrix()
+
     T_w_c1 = np.eye(4)
     T_w_c2 = np.eye(4)
+    rot_matrix1 = R.from_quat([qx1, qy1, qz1, qw1]).as_matrix()
+    rot_matrix2 = R.from_quat([qx2, qy2, qz2, qw2]).as_matrix()
     T_w_c1[:3, :3] = rot_matrix1
     T_w_c2[:3, :3] = rot_matrix2
     T_w_c1[:3, 3] = np.array([tx1, ty1, tz1])
@@ -124,8 +133,8 @@ def absolut_to_relative_poses(pose1, pose2):
 
 def relative_to_absoult_poses(pose1, T_c2_c1):
     """
-    Given a intial pose1 in world-to-camera and the relative pose transformation to change from camera1 to 2 a
-    camera-to-world transformation:
+    Given a initial pose1 in world-to-camera and the relative pose transformation to change from camera1 to 2
+    (camera-to-world):
         T_w_c1 (pose1): traslation, quaternions
         T_c2_c1:  traslation, quaternions
 
@@ -142,14 +151,16 @@ def relative_to_absoult_poses(pose1, T_c2_c1):
     tx2_1, ty2_1, tz2_1 = T_c2_c1[0], T_c2_c1[1], T_c2_c1[2]
     qx1, qy1, qz1, qw1 = pose1[3], pose1[4], pose1[5], pose1[6]
     qx2_1, qy2_1, qz2_1, qw2_1 = T_c2_c1[3], T_c2_c1[4], T_c2_c1[5], T_c2_c1[6]
-    rot_matrix1 = R.from_quat([qx1, qy1, qz1, qw1]).as_matrix()
-    rot_matrix2_1 = R.from_quat([qx2_1, qy2_1, qz2_1, qw2_1]).as_matrix()
+
     T_w_c1 = np.eye(4)
     T_c2_c1 = np.eye(4)
+    rot_matrix1 = R.from_quat([qx1, qy1, qz1, qw1]).as_matrix()
+    rot_matrix2_1 = R.from_quat([qx2_1, qy2_1, qz2_1, qw2_1]).as_matrix()
     T_w_c1[:3, :3] = rot_matrix1
     T_c2_c1[:3, :3] = rot_matrix2_1
     T_w_c1[:3, 3] = np.array([tx1, ty1, tz1])
     T_c2_c1[:3, 3] = np.array([tx2_1, ty2_1, tz2_1])
+
     T_w_c2_4x4 = np.linalg.inv(np.matmul(T_c2_c1, np.linalg.inv(T_w_c1)))
     R_w_c2 = R.from_matrix(T_w_c2_4x4[:3, :3]).as_quat()
     T_w_c2 = np.append(T_w_c2_4x4[:3, 3], R_w_c2)
@@ -158,7 +169,8 @@ def relative_to_absoult_poses(pose1, T_c2_c1):
 
 
 def pose_from_quat_to_matrix(pose):
-    """ Transform from pose in quaternion to pose in matrix.
+    """
+    Transform from pose in quaternion to pose in matrix.
 
     Input: torch.tensor([[BATCH_i], [tx, ty, tz, qx, qy, qz, qw]])
     Output: torch.tensor([[BATCH_i], [rxx, rxy, rxz, tx], [ryx, ryy, ryz, ty], [rzx, rzy, rzz, tz], [0, 0, 0, 1]])
@@ -184,7 +196,8 @@ def pose_from_quat_to_matrix(pose):
 
 
 def pose_from_matrix_to_quat(pose):
-    """ Transform from pose in matrix to pose in quaternion.
+    """
+    Transform from pose in matrix to pose in quaternion.
 
     Input: [[rxx, rxy, rxz, tx], [ryx, ryy, ryz, ty], [rzx, rzy, rzz, tz], [0, 0, 0, 1]]
     Output: [tx, ty, tz, qx, qy, qz, qw]
@@ -206,7 +219,8 @@ def pose_from_matrix_to_quat(pose):
 
 
 def invert_pose(pose):
-    """ Invert a batch of relative pose transformations in quaternions.
+    """
+    Invert a batch of relative pose transformations in quaternions.
 
     Input: torch.tensor([BATCH * [tx, ty, tz, qx, qy, qz, qw]])
     Output: torch.tensor([BATCH * [tx, ty, tz, qx, qy, qz, qw]])
