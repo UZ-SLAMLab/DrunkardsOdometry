@@ -6,10 +6,11 @@
 root='/.../evaluations_drunkards_dataset'
 # root path to the folder containing the poses of all methods. It should follow this structure:
 # --> root
-#     --> scene0
-#         --> method0
-#             --> pose.txt       Ground truth camera trajectory poses
-#             --> pose_est.txt   Estimated camera trajectory poses
+#     --> 00000
+#         --> level0
+#             --> droidslam
+#                 --> pose.txt       Ground truth camera trajectory poses
+#                 --> pose_est.txt   Estimated camera trajectory poses
 #         ...
 #     ...
 

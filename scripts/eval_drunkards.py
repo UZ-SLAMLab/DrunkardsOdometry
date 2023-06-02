@@ -147,10 +147,11 @@ if __name__ == '__main__':
     parser.add_argument('--datapath', type=str, required=True, help='full path to folder containing the scenes')
     parser.add_argument('--difficulty_level', type=int, choices=[0, 1, 2, 3],
                         help='drunk dataset diffculty level to use')
-    parser.add_argument('--res_factor', type=int, default=1, help='reduce resolution by a factor')
+    parser.add_argument('--res_factor', type=float, default=1., help='reduce resolution by a factor')
     parser.add_argument('--test_scenes', type=int, nargs='+', default=[0, 4, 5], help='scenes used for testing')
     parser.add_argument("--save_path", type=str, help="specify full path. Results will be saved here")
-    parser.add_argument('--pose_bias', type=float, default=0.01, help='bias to be multiplied to the estimated delta_pose of the model in each iteration.')
+    parser.add_argument('--pose_bias', type=float, default=0.01, help='bias to be multiplied to the estimated '
+                        'delta_pose of the model in each iteration.')
     parser.add_argument('--radius', type=int, default=32)
 
     args = parser.parse_args()
@@ -166,7 +167,7 @@ if __name__ == '__main__':
     if args.save_path:
         original_save_path = args.save_path
     else:
-        original_save_path = os.path.join(os.getcwd(), 'evaluations_drunk')  # todo chequear que el os.getcwd() me devuelve el path padre de este script, es decri, el main folder
+        original_save_path = os.path.join(os.getcwd(), 'evaluations_drunkards_dataset')  # todo chequear que el os.getcwd() me devuelve el path padre de este script, es decri, el main folder
 
     for scene in args.test_scenes:
         args.save_path = os.path.join(original_save_path, "{:05d}".format(scene), "level{}".format(args.difficulty_level), args.name)

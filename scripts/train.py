@@ -317,8 +317,11 @@ def train(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', default='bla', help='name your experiment')
-    parser.add_argument('--ckpt', type=str, help='checkpoint to restore')
-    parser.add_argument('--continue_training_from_ckpt', action="store_true", help='continue training from loaded model. Total steps, optimizer, scheduler, loss, clipper and number of trained epochs are restored from checkpoint')
+    parser.add_argument('--ckpt', type=str, help='checkpoint to load')
+    parser.add_argument('--continue_training_from_ckpt', action="store_true", help='continue training from loaded '
+                        'model. Total steps, optimizer, scheduler, loss, clipper and number of trained epochs are '
+                        'restored from checkpoint. Otherwise, training starts from zero, starting from the pretrained '
+                        'loaded model.')
     parser.add_argument('--batch_size', type=int, default=12)
     parser.add_argument('--lr', type=float, default=.0002)
     parser.add_argument('--num_epochs', type=int, default=10)
@@ -349,6 +352,10 @@ if __name__ == '__main__':
                         'in the dataloader, invert if the random probability is under this number.')
     parser.add_argument('--num_workers', type=int, default=4)
     parser.add_argument('--radius', type=int, default=32)
+
+    if len(sys.argv) == 1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
 
     args = parser.parse_args()
     print(args)

@@ -17,3 +17,4 @@ do
       $blender_exe -b $blend_files_path/$scene/$level/workspace_flow.blend -P $project_path/scripts/render/flow_and_normal.py -- -o $save_path -s $scene
    done
 done
+

@@ -34,5 +34,5 @@ output_node.base_path = save_depth_folder
 
 for step in range(0, total_steps[args.scene]):
     scene.frame_set(step)
-    scene.render.filepath = os.path.join(save_color_folder, '%010d.png' % step)
+    scene.render.filepa0th = os.path.join(save_color_folder, '%010d.png' % step)
     bpy.ops.render.render(write_still=True)
