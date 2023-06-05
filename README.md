@@ -3,7 +3,7 @@
 <center><img src="assets/Overview_drunk.jpg" width="540" style="center"></center>
 
 [The Drunkard’s Odometry: Estimating Camera Motion in Deforming Scenes]()  
-David Recasens, Martin R. Oswald, Javier Civera
+David Recasens, Martin R. Oswald, Marc Pollefeys, Javier Civera
 
 
 ## 💭 About
@@ -31,9 +31,18 @@ Expected directory structure:
             ├── color
             ├── depth
             ├── optical_flow
+            ├── normal
             ├── pose.txt            
 ```
 
+For every of the 19 scenes there are 4 levels of deformation difficulty and inside each of them you can find color and depth images, optical flow and normal maps and the camera trajectory.
+
+- Color: RGB uint8 .png images. 
+- Depth: uint16 .png grayscale images whose pixel values must be multiplied by (2 ** 16 - 1) * 30 to obtain metric scale in meters.
+- Optical flow: .npy image numpy arrays that are .npz compressed. They have two channels: horizontal and vertical pixel translation to go from current frame to the next one.
+- Normal: .npy image numpy arrays that are .npz compressed. There are three channels: x, y and z to represent the normal vector to the surface where the pixel falls.
+
+Check the Drunkard's Odometry dataloader for further coding technical details to work with the data.
 
 ## 🧠 Training
 
