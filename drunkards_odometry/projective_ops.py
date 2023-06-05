@@ -99,10 +99,10 @@ def backproject_flow3d(flow2d, depth0, depth1, intrinsics):
 
 def absolut_to_relative_poses(pose1, pose2):
     """
-    Given two transformation matrices to change from camera1 and 2 to world coordinate frame (world-to-camera):
+    Given two transformation to change from camera1 and 2 to world coordinate frame (world-to-camera):
         T_w_c1 (pose1): traslation, quaternions
         T_w_c2 (pose2): traslation, quaternions
-    Return relative transformation matrix to change from camera frame 1 to 2 a camera-to-world transformation:
+    Return relative transformation to change from camera frame 1 to 2 a camera-to-world transformation:
         T_c2_c1:  traslation, quaternions
         T_c2_w = T_c2_c1 * T_c1_w -> T_w_c2^-1 = T_c2_c1 * T_w_c1^-1 -> T_c2_c1 = T_w_c2^-1 * T_w_c1
     """
