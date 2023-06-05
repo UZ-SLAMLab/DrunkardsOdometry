@@ -1,4 +1,4 @@
-# The Drunkard’s Odometry: Frame-to-frame Camera Motion in Deforming Scenes
+# The Drunkard’s Odometry: Estimating Camera Motion in Deforming Scenes
 
 <center><img src="assets/Overview_drunk.jpg" width="540" style="center"></center>
 
