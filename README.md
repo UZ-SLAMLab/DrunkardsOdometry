@@ -41,7 +41,7 @@ For every of the 19 scenes there are 4 levels of deformation difficulty and insi
 - Depth: uint16 .png grayscale images whose pixel values must be multiplied by (2 ** 16 - 1) * 30 to obtain metric scale in meters.
 - Optical flow: .npy image numpy arrays that are .npz compressed. They have two channels: horizontal and vertical pixel translation to go from current frame to the next one.
 - Normal: .npy image numpy arrays that are .npz compressed. There are three channels: x, y and z to represent the normal vector to the surface where the pixel falls.
-- Camera trajectory pose: .txt file containing at each line a different SE(3) world-to-camera transformation for every frame. Format: timestamps, translation (tx, ty, tz), quaternions (qx, qy, qz, qw).****** 
+- Camera trajectory pose: .txt file containing at each line a different SE(3) world-to-camera transformation for every frame. Format: timestamps, translation (tx, ty, tz), quaternions (qx, qy, qz, qw).
 
 Check the Drunkard's Odometry dataloader for further coding technical details to work with the data.
 
