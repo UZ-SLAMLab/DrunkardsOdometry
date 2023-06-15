@@ -5,7 +5,7 @@ import numpy as np
 from lietorch import SE3
 
 from .blocks.extractor import BasicEncoder
-from .blocks.resnet import FPN
+from drunkards_odometry.blocks.resnet import FPN
 from .blocks.corr import CorrBlock
 from .blocks.gru import ConvGRU
 from .blocks.grid import GridFactor
@@ -13,7 +13,7 @@ from .sampler_ops import depth_sampler
 
 from . import projective_ops as pops
 from . import se3_field
-from .blocks import ResnetEncoder, PoseDecoder
+from .pose_cnn import ResnetEncoder, PoseDecoder
 
 
 GRAD_CLIP = .01

@@ -7,13 +7,12 @@ David Recasens, Martin R. Oswald, Marc Pollefeys, Javier Civera
 
 
 ## 💭 About
-The Drunkard’s Odometry is a robust flow-based odometry method. 
-The Drunkard’s Dataset is a challenging collection of synthetic data targeting visual navigation and reconstruction in deformable environments.
+This repository is the official implementation of The Drunkard’s Odometry, a robust flow-based odometry estimation method, and contains information about the Drunkard’s Dataset, a challenging collection of synthetic data targeting visual navigation and reconstruction in deformable environments.
 
 
 ## ⚙️ Setup
 
-We have ran our experiments under CUDA 9.1.85, CuDNN 7.6.5 and Ubuntu 18.04 and (check eth cluster). We recommend create a virtual environment with Python 3.7 using [Anaconda](https://www.anaconda.com/download/) `conda create -n edam python=3.7` and install the dependencies as
+We ran our experiments under CUDA 9.1.85, CuDNN 7.6.5 and Ubuntu 18.04 and (check eth cluster), using a single RTX Nvidia Titan GPU during training and/or a single RTX Nvidia 2080 Ti for evaluation. We recommend create a virtual environment with Python 3.7 using [Anaconda](https://www.anaconda.com/download/) `conda create -n edam python=3.7` and install the dependencies as
 ```shell
 conda create --name drunkard --file requirements.txt
 ```
@@ -41,7 +40,7 @@ For every of the 19 scenes there are 4 levels of deformation difficulty and insi
 - Depth: uint16 .png grayscale images whose pixel values must be multiplied by (2 ** 16 - 1) * 30 to obtain metric scale in meters.
 - Optical flow: .npy image numpy arrays that are .npz compressed. They have two channels: horizontal and vertical pixel translation to go from current frame to the next one.
 - Normal: .npy image numpy arrays that are .npz compressed. There are three channels: x, y and z to represent the normal vector to the surface where the pixel falls.
-- Camera trajectory pose: .txt file containing at each line a different SE(3) world-to-camera transformation for every frame. Format: timestamps, translation (tx, ty, tz), quaternions (qx, qy, qz, qw).
+- Camera trajectory pose: .txt file containing at each line a different SE(3) world-to-camera transformation for every frame. Format: timestamp, translation (tx, ty, tz), quaternions (qx, qy, qz, qw).
 
 Check the Drunkard's Odometry dataloader for further coding technical details to work with the data.
 
@@ -114,3 +113,11 @@ You can run the demo to predict the relative camera pose from a pair of RGB-D fr
 ```
 python scripts/demo.py ...
 ```
+
+
+## 👩‍⚖️ License
+
+The code, dataset and additional resources of this work are released under [MIT License](LICENSE). There are some parts of the code modified from other repositories subject also to their own license:
+
+- The code in drunkards_odometry and data_readers folders is based and extended from [RAFT-3D](https://github.com/princeton-vl/RAFT-3D) under [BSD 3-Clause License](https://github.com/princeton-vl/RAFT-3D/blob/master/LICENSE).
+- The code in drunkards_odometry/pose_cnn is derived from [Manydepth](https://github.com/nianticlabs/manydepth) under [ManyDepth License](https://github.com/nianticlabs/manydepth/blob/master/LICENSE).
