@@ -10,7 +10,7 @@ from glob import glob
 
 
 class HamlynDataset(data.Dataset):
-    def __init__(self, root='/home/david/datasets/hamlyn_for_drunk_paper', scenes_to_use=None):
+    def __init__(self, root, scenes_to_use=None):
         self.init_seed = None
 
         self.image_list = []

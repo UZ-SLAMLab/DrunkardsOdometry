@@ -31,7 +31,8 @@ Expected directory structure:
             ├── depth
             ├── optical_flow
             ├── normal
-            ├── pose.txt            
+            ├── pose.txt 
+            ├── wrong_poses.txt (barely)          
 ```
 
 For every of the 19 scenes there are 4 levels of deformation difficulty and inside each of them you can find color and depth images, optical flow and normal maps and the camera trajectory.
@@ -41,6 +42,7 @@ For every of the 19 scenes there are 4 levels of deformation difficulty and insi
 - Optical flow: .npy image numpy arrays that are .npz compressed. They have two channels: horizontal and vertical pixel translation to go from current frame to the next one.
 - Normal: .npy image numpy arrays that are .npz compressed. There are three channels: x, y and z to represent the normal vector to the surface where the pixel falls.
 - Camera trajectory pose: .txt file containing at each line a different SE(3) world-to-camera transformation for every frame. Format: timestamp, translation (tx, ty, tz), quaternions (qx, qy, qz, qw).
+- Wrong camera poses: .txt file containing corrupted frames and the immediately adjacent ones that are rejected in the dataloader. It barely happens for some specific cases, not in the used test scenes (0, 4 and 5). It is being currently addressed.
 
 Check the Drunkard's Odometry dataloader for further coding technical details to work with the data.
 
@@ -66,9 +68,7 @@ For a personalized training you can play with the different arguments:
 
 ## :beers: Drunkard's Dataset Evaluation
 
-The Drunkard's Odometry models can be found here [here](https://drive.google.com/drive/folders/1Oj0lktYLSTOXT0sJzA7PYIUOhYPIhTZS?usp=sharing)
-
-To run the Drunkard's Odometry on all the four levels of difficulty of the Drunkard's Dataset test scenes:
+To run the used [Drunkard's Odometry model](https://drive.google.com/file/d/1ZQhr3iQobRaeofNaeCNu2e1MGA1PrnCJ/view?usp=sharing) on all the four levels of difficulty of the Drunkard's Dataset test scenes:
 
 ```shell
 sh  scripts/eval_drunkards_dataset/run_drunkards_odometry.sh
@@ -104,6 +104,26 @@ sh  scripts/eval_drunkards_dataset/edam.sh
 You need to save the estimated poses 'pose_est.txt' with the same folder structure as the Drunkard's Odometry, but name the method's folder as 'colmap', 'droidslam' or 'edam', respectively. In addition, in those cases where not the full scene has been tracked, you must remove those missing poses from the ground truth file 'pose.txt'.
 
 ## :man_health_worker: Hamlyn Evaluation
+
+As the Hamlyn dataset does not have ground truth camera poses, to evaluate the trajectory estimation we introduce ground truth-free metric Absolut Palindrome Trajectory Error (APTE), that averages the L2 error between start and end pose of the estimated trajectory for the palindrome video (k-frames forward and backward) over all possible loop lengths. Therefore, this metric needs the forward and backward estimated trajectories.
+For the evaluation, we use the same [data](https://drive.google.com/file/d/1Iqdk8P51FuD5O96mO_8YubyKQ6BzQRp9/view?usp=sharing) as in the tracking experiments of the paper [Endo-Depth-and-Motion](https://ieeexplore.ieee.org/abstract/document/9478277?casa_token=jo2SHKzVwd8AAAAA:EEsxN4CvnZr8BcASDFF5GdXIqVX7cWGiYUIyhuQ19iz4GF7vsK1f-GkfHRhsh0hmEtdb__aVDg), that consists in forward and backward RGB images of test scenes 1 and 17 with the black borders cropped out and the estimated depth maps by a single-view self-supervised network with the following structure:
+
+```Shell
+├── HamlynData
+    ├── test1 (forward)
+        ├── color
+        ├── depth
+        ├── intrinsics.txt
+        ├── intrinsics_matrix.txt     
+    ├── test1_backward                  
+```
+
+To run the used Drunkard's Odometry models that were trained [with](https://drive.google.com/file/d/1kmg4D9q8X3pYhdpPNfCb_WYSBrfnKkCM/view?usp=sharing) and [without](https://drive.google.com/file/d/1OUcpYJTP_5rXdadeK6wEVi2IZmBiOctX/view?usp=sharing) deformation:
+
+```shell
+sh  scripts/eval_hamlyn/drunkards_odometry.sh
+```
+
 
 
 ## 	:call_me_hand: Demo

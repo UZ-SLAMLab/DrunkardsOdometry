@@ -18,8 +18,8 @@ from drunkards_odometry.sampler_ops import bilinear_sampler
 
 
 class DrunkDataset(data.Dataset):
-    def __init__(self, root='/media/david/DiscoDuroLinux/Datasets/drunk_dataset',
-                 difficulty_level=None, do_augment=True, res_factor=1, scenes_to_use=None, depth_augmentor=False, mode='train', invert_order_prob=0.0):
+    def __init__(self, root, difficulty_level=None, do_augment=True, res_factor=1, scenes_to_use=None,
+                 depth_augmentor=False, mode='train', invert_order_prob=0.0):
         self.init_seed = None
         self.res_factor = res_factor
         self.depth_augmentor = depth_augmentor
@@ -48,15 +48,27 @@ class DrunkDataset(data.Dataset):
         scenes = list(set(scenes_to_use) & set(available_scenes))
 
         for scene_i in scenes:
-            images = sorted(glob(osp.join(root, "{:05d}".format(scene_i), "level{}/color/*.png".format(difficulty_level))))
+            images = sorted(glob(osp.join(
+                root, "{:05d}".format(scene_i), "level{}/color/*.png".format(difficulty_level)
+            )))
             if not len(images):
-                images = sorted(glob(osp.join(root, "{:05d}".format(scene_i), "level{}/color/color/*.png".format(difficulty_level))))
-            depths = sorted(glob(osp.join(root, "{:05d}".format(scene_i), "level{}/depth/*.png".format(difficulty_level))))
+                images = sorted(glob(osp.join(
+                    root, "{:05d}".format(scene_i), "level{}/color/color/*.png".format(difficulty_level)
+                )))
+            depths = sorted(glob(osp.join(
+                root, "{:05d}".format(scene_i), "level{}/depth/*.png".format(difficulty_level)
+            )))
             if not len(depths):
-                depths = sorted(glob(osp.join(root, "{:05d}".format(scene_i), "level{}/depth/depth/*.png".format(difficulty_level))))
-            flows = sorted(glob(osp.join(root, "{:05d}".format(scene_i), "level{}/optical_flow/*.npz".format(difficulty_level))))
+                depths = sorted(glob(osp.join(
+                    root, "{:05d}".format(scene_i), "level{}/depth/depth/*.png".format(difficulty_level)
+                )))
+            flows = sorted(glob(osp.join(
+                root, "{:05d}".format(scene_i), "level{}/optical_flow/*.npz".format(difficulty_level)
+            )))
             if not len(flows):
-                flows = sorted(glob(osp.join(root, "{:05d}".format(scene_i), "level{}/optical_flow/optical_flow/*.npz".format(difficulty_level))))
+                flows = sorted(glob(osp.join(
+                    root, "{:05d}".format(scene_i), "level{}/optical_flow/optical_flow/*.npz".format(difficulty_level)
+                )))
             poses = osp.join(root, "{:05d}".format(scene_i), "level{}/pose.txt".format(difficulty_level))
             poses_file = open(poses, 'r')
             poses = poses_file.readlines()
@@ -161,7 +173,8 @@ class DrunkDataset(data.Dataset):
 
         # Relative pose to go from pose1 to pose2
         pose_gt = torch.from_numpy(pops.absolut_to_relative_poses(pose1, pose2)).float().to(pose1.device)
-        pose_gt_inv = pops.pose_from_matrix_to_quat(torch.inverse(pops.pose_from_quat_to_matrix(pose_gt.unsqueeze(0)))).squeeze()
+        pose_gt_inv = pops.pose_from_matrix_to_quat(
+            torch.inverse(pops.pose_from_quat_to_matrix(pose_gt.unsqueeze(0)))).squeeze()
 
         # Valid pixels mask
         h, w = depth1.shape[:2]
@@ -176,7 +189,7 @@ class DrunkDataset(data.Dataset):
         if self.mode == 'train':
             valid_mask = (depth_mask * flow2d_mask
                           * (flow2d[..., 0] > -120) * (flow2d[..., 0] < 120) * (flow2d[..., 1] > -120) * (
-                                      flow2d[..., 1] < 120)
+                                  flow2d[..., 1] < 120)
                           * (valid_flow > 0).squeeze()).unsqueeze(-1)
         elif self.mode == 'test':
             valid_mask = depth_mask.unsqueeze(-1)
