@@ -84,7 +84,7 @@ if __name__ == '__main__':
     parser.add_argument('--pose_bias', type=float, default=0.01,
                         help='bias to be multiplied to the estimated delta_pose of the model in each iteration.')
     parser.add_argument('--radius', type=int, default=32)
-    parser.add_argument('--res_factor', type=float, default=1.)
+    parser.add_argument('--res_factor', type=float, default=1., help='reduce resolution by a factor')
     parser.add_argument('--depth_factor', type=float, default=1., help='factor to multiply the read depth pixel values')
     parser.add_argument('--depth_limit_bottom', type=float, default=0.,
                         help='mask out pixels with depth values below this limit')
@@ -94,10 +94,6 @@ if __name__ == '__main__':
                         help='intrinsics: fx, fy, cx, cy')
     args = parser.parse_args()
     print(args)
-
-    if len(sys.argv) == 1:
-        parser.print_help(sys.stderr)
-        sys.exit(1)
 
     import importlib
 

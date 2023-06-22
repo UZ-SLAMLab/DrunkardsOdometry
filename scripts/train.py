@@ -353,10 +353,6 @@ if __name__ == '__main__':
     parser.add_argument('--num_workers', type=int, default=4)
     parser.add_argument('--radius', type=int, default=32)
 
-    if len(sys.argv) == 1:
-        parser.print_help(sys.stderr)
-        sys.exit(1)
-
     args = parser.parse_args()
     print(args)
     train(args)

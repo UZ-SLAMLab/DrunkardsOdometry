@@ -20,50 +20,50 @@ conda create --name drunkard --file requirements.txt
 
 ## 💾 Data
 
-The Drunkard's Dataset can be found [here](https://drive.google.com/drive/folders/1AZHUKMbe7bR1xwRmAAZ0AHgcEqRnNjms?usp=sharing).
-
-Expected directory structure:
+The Drunkard's Dataset can be found [here](https://drive.google.com/drive/folders/1AZHUKMbe7bR1xwRmAAZ0AHgcEqRnNjms?usp=sharing). Directory structure:
 ```Shell
-├── drunkards_dataset
-    ├── 00000
-        ├── level0
-            ├── color
-            ├── depth
-            ├── optical_flow
-            ├── normal
-            ├── pose.txt 
-            ├── wrong_poses.txt (few times)          
+├── Drunkard's Dataset
+    ├── 1024 (resolution 1024x1024)
+        ├── 00000 (scene 0)
+            ├── level0 (level of difficulty)
+                ├── color
+                ├── depth
+                ├── optical_flow
+                ├── normal
+                ├── pose.txt 
+                ├── wrong_poses.txt (few times)   
+            ├── level1 
+            ├── level2
+            ├── level3
+    ├── 320      
 ```
 
-For every of the 19 scenes there are 4 levels of deformation difficulty and inside each of them you can find color and depth images, optical flow and normal maps and the camera trajectory.
+There are 2 versions of the dataset, with resolution 1024x1024 and 320x320 (this last one being used in this work). For every of the 19 scenes there are 4 levels of deformation difficulty and inside each of them you can find color and depth images, optical flow and normal maps and the camera trajectory.
 
 - Color: RGB uint8 .png images. 
 - Depth: uint16 .png grayscale images whose pixel values must be multiplied by (2 ** 16 - 1) * 30 to obtain metric scale in meters.
 - Optical flow: .npy image numpy arrays that are .npz compressed. They have two channels: horizontal and vertical pixel translation to go from current frame to the next one.
 - Normal: .npy image numpy arrays that are .npz compressed. There are three channels: x, y and z to represent the normal vector to the surface where the pixel falls.
 - Camera trajectory pose: .txt file containing at each line a different SE(3) world-to-camera transformation for every frame. Format: timestamp, translation (tx, ty, tz), quaternions (qx, qy, qz, qw).
-- Wrong camera poses: .txt file containing corrupted frames and the immediately adjacent ones that are rejected in the dataloader. It barely happens for some specific cases, not in the used test scenes (0, 4 and 5). It is being currently addressed.
+- Wrong camera poses: .txt file containing corrupted frame timestamps and the immediately adjacent ones that are rejected in the dataloader. It barely happens for some specific cases, not in the used test scenes (0, 4 and 5). It is being currently addressed.
 
 Check the Drunkard's Odometry dataloader for further coding technical details to work with the data.
 
 ## 🧠 Training
 
-To execute a small training test over the [Drunkard's Dataset Sample]():
+To execute a small training test over the [Drunkard's Dataset Sample](https://drive.google.com/file/d/1tKuDIVG_eikSpOAvcvNiS-psIqo-1UJQ/view?usp=sharing):
 
 ```shell
 python scripts/train.py --name=drunkards-odometry-test --datapath=/.../DrunkardsDatasetSample --difficulty_level=1 --batch_size=2 --train_scenes 0 --val_scenes 0 
 ```
 
-To replicate the paper training:
+To replicate the paper training you will need to download the Drunkard's Dataset color, depth optical flow and pose with resolution 320x320:
 
 ```shell
 python scripts/train.py --name=drunkards-odometry --datapath=/.../DrunkardsDataset320 --difficulty_level=1 --depth_augmentor
 ```
 
-For a personalized training you can play with the different arguments:
-- --name: name your experiment.
-- --ckpt: .pth model checkpoint to load.
-- --continue_training_from_ckpt: continue training from loaded model. Total steps, optimizer, scheduler, loss, clipper and number of trained epochs are restored from checkpoint. Otherwise, training starts from zero, starting from the pretrained loaded model.
+For a personalized training you can play with the different arguments. Execute ```python scripts/train.py -h``` to see them in detail.
 
 
 ## :beers: Drunkard's Dataset Evaluation
@@ -134,7 +134,7 @@ You can run the demo to predict the camera trajectory from RGB-D frames:
 python scripts/demo.py --name=demo --ckpt=/.../drunkards-odometry.pth --datapath=/.../DrunkardsDatasetSample --intrinsics 190.68059285 286.02088928 160. 160. --depth_factor=0.000457771 --depth_limit_bottom=0.1 --depth_limit_top=30.
 ```
 
-In this example, we are estimating the pose on Drunkard's Dataset samples, thus substitute them with your own data and the parameters accordingly.
+In this example, we are estimating the pose on Drunkard's Dataset samples, thus substitute them with your own data and the parameters accordingly. Execute ```python scripts/demo.py -h``` to see them in detail.
 
 
 ## 👩‍⚖️ License
