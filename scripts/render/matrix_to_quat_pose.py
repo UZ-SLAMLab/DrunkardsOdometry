@@ -19,6 +19,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--input_pose_path", type=str, required=True)
 parser.add_argument("-o", "--output_pose_path", type=str, required=True)
 args = parser.parse_args()
+print(args)
 
 input_pose_path = os.path.join(args.input_pose_path, "pose_matrix.txt")
 output_pose_path = os.path.join(args.output_pose_path, "pose.txt")

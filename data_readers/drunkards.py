@@ -18,7 +18,7 @@ from drunkards_odometry.sampler_ops import bilinear_sampler
 
 
 class DrunkDataset(data.Dataset):
-    def __init__(self, root, difficulty_level=None, do_augment=True, res_factor=1, scenes_to_use=None,
+    def __init__(self, root, difficulty_level=None, do_augment=True, res_factor=1., scenes_to_use=None,
                  depth_augmentor=False, mode='train', invert_order_prob=0.0):
         self.init_seed = None
         self.res_factor = res_factor
@@ -37,7 +37,7 @@ class DrunkDataset(data.Dataset):
         self.pose_list = []
         self.intrinsics_list = []
 
-        intrinsics = np.array([610.17789714, 915.2668457, 512., 512.])  # 1024x1024
+        intrinsics = np.array([190.68059285, 286.02088928, 160., 160.])  # Drunkard's Dataset 320x320
 
         available_scenes = [i.name.lstrip('0') or '0' for i in os.scandir(root) if i.is_dir()]
         available_scenes = list(map(int, available_scenes))

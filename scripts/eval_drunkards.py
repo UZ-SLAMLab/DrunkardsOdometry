@@ -153,12 +153,12 @@ if __name__ == '__main__':
     parser.add_argument('--pose_bias', type=float, default=0.01, help='bias to be multiplied to the estimated '
                         'delta_pose of the model in each iteration.')
     parser.add_argument('--radius', type=int, default=32)
-
     args = parser.parse_args()
+    print(args)
 
     import importlib
 
-    model = importlib.import_module('drunkards_odometry.model').DrunkardsOdometry
+    model = importlib.import_module('drunkards_odometry.model').DrunkardsOdometry(args)
     checkpoint = torch.load(args.ckpt)
     model.load_state_dict(checkpoint['model_state_dict'], strict=False)
     model.cuda()

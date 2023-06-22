@@ -32,7 +32,7 @@ Expected directory structure:
             ├── optical_flow
             ├── normal
             ├── pose.txt 
-            ├── wrong_poses.txt (barely)          
+            ├── wrong_poses.txt (few times)          
 ```
 
 For every of the 19 scenes there are 4 levels of deformation difficulty and inside each of them you can find color and depth images, optical flow and normal maps and the camera trajectory.
@@ -128,11 +128,13 @@ sh  scripts/eval_hamlyn/drunkards_odometry.sh
 
 ## 	:call_me_hand: Demo
 
-You can run the demo to predict the relative camera pose from a pair of RGB-D frames:
+You can run the demo to predict the camera trajectory from RGB-D frames:
 
+```shell
+python scripts/demo.py --name=demo --ckpt=/.../drunkards-odometry.pth --datapath=/.../DrunkardsDatasetSample --intrinsics 190.68059285 286.02088928 160. 160. --depth_factor=0.000457771 --depth_limit_bottom=0.1 --depth_limit_top=30.
 ```
-python scripts/demo.py ...
-```
+
+In this example, we are estimating the pose on Drunkard's Dataset samples, thus substitute them with your own data and the parameters accordingly.
 
 
 ## 👩‍⚖️ License

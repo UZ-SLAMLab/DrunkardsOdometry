@@ -337,10 +337,10 @@ if __name__ == '__main__':
     parser.add_argument('--val_scenes', type=int, nargs='+', default=[0, 4, 5], help='scenes used for validating')
     parser.add_argument("--save_path", type=str, help="if specified, logs and checkpoint will be saved here. "
                         "Otherwise, stored in the project main folder")
-    parser.add_argument('--fl_weight', type=float, default=1.0)
+    parser.add_argument('--fl_weight', type=float, default=1.)
     parser.add_argument('--rv_weight', type=float, default=0.2)
     parser.add_argument('--dz_weight', type=float, default=100.0)
-    parser.add_argument('--relative_tra_rot_weight', type=float, default=1.0)
+    parser.add_argument('--relative_tra_rot_weight', type=float, default=1.)
     parser.add_argument('--pose_weight', type=float, default=200.0)
     parser.add_argument('--pose_cnn_weight', type=float, default=0.1)
     parser.add_argument("--depth_augmentor", action="store_true",
