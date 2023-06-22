@@ -79,7 +79,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', required=True, help='name your experiment')
     parser.add_argument('--ckpt', help='checkpoint to restore')
-    parser.add_argument('--datapath', type=str, required=True, help='full path to folder containing the scenes')
+    parser.add_argument('--datapath', type=str, required=True,
+                        help='full path to folder containing the color and depth folder')
     parser.add_argument("--save_path", type=str, help="specify full path. Results will be saved here")
     parser.add_argument('--pose_bias', type=float, default=0.01,
                         help='bias to be multiplied to the estimated delta_pose of the model in each iteration.')
@@ -106,7 +107,7 @@ if __name__ == '__main__':
     if args.save_path:
         original_save_path = args.save_path
     else:
-        original_save_path = os.path.join(os.getcwd(), 'evaluations_demo')  # todo chequear que el os.getcwd() me devuelve el path padre de este script, es decri, el main folder
+        original_save_path = os.path.join(os.getcwd(), 'evaluations_demo')
 
     args.save_path = os.path.join(original_save_path, args.name)
     if not os.path.isdir(args.save_path):
