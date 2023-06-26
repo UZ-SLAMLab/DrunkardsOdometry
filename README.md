@@ -64,22 +64,23 @@ Anyone can render custom versions of the Drunkard's Dataset using its [blender p
         ├── level3
 ```
 
-You will need to install in Blender [this python script](https://github.com/UZ-SLAMLab/DrunkardsOdometry/blob/b1ce3f57fb0b400a3c47e7f94efb9388cd74ecbb/scripts/render/addon_ground_truth_generation.py) modified from [VisionBlender](https://github.com/Cartucho/vision_blender) (check it out to see the easy installation).  
+You will need to install in Blender [this python script](https://github.com/UZ-SLAMLab/DrunkardsOdometry/blob/b1ce3f57fb0b400a3c47e7f94efb9388cd74ecbb/scripts/render/addon_ground_truth_generation.py) modified from [VisionBlender](https://github.com/Cartucho/vision_blender) (check it out to see the easy installation). 
+
 You can modify the deformations and camera trajectory as you want opening the files in Blender, saving them and executing the following scripts (edit the absolut paths inside them beforehand) to render your custom dataset: 
 
 To render color and depth images:
 ```shell
-sh  scripts/render/color_and_depth.sh
+sh scripts/render/color_and_depth.sh
 ```
 
 To render optical flow and normal maps:
 ```shell
-sh  scripts/render/flow_and_normal.sh
+sh scripts/render/flow_and_normal.sh
 ```
 
 To render camera trajectory:
 ```shell
-sh  scripts/render/pose.sh
+sh scripts/render/pose.sh
 ```
 
 
@@ -105,7 +106,7 @@ For a personalized training you can play with the different arguments. Execute `
 To run the used [Drunkard's Odometry model](https://drive.google.com/file/d/1ZQhr3iQobRaeofNaeCNu2e1MGA1PrnCJ/view?usp=sharing) on all the four levels of difficulty of the Drunkard's Dataset test scenes:
 
 ```shell
-sh  scripts/eval_drunkards_dataset/run_drunkards_odometry.sh
+sh scripts/eval_drunkards_dataset/run_drunkards_odometry.sh
 ```
 
 You need to modify the arguments to specify your dataset's and model checkpoint's path. By default the evaluations are saved in the folder 'evaluations_drunkards_dataset'. This script outputs the estimated camera poses 'pose_est.txt' and the flow metrics 'metrics.txt'. There are also pose estimation metrics without trajectory alignment, used in the training ablation study.
@@ -113,7 +114,7 @@ You need to modify the arguments to specify your dataset's and model checkpoint'
 To obtain the trajectory metrics (RPE traslation, RPE rotation and ATE) you need to execute this script to align the estimated and ground truth trajectories before the evaluation. 
 
 ```shell
-sh  scripts/eval_drunkards_dataset/drunkards_odometry.sh
+sh scripts/eval_drunkards_dataset/drunkards_odometry.sh
 ```
 
 Beforehand, modify the evaluations root path in the script and place the ground truth poses "pose.txt" in the same folder as the estimated ones "pose_est.txt" following this structure:
@@ -130,9 +131,9 @@ Beforehand, modify the evaluations root path in the script and place the ground 
 To evaluate the trajectories of the other baselines (Colmap, DROID-SLAM and Endo-Depth-and-Motion) use the following scripts
 
 ```shell
-sh  scripts/eval_drunkards_dataset/colmap.sh
-sh  scripts/eval_drunkards_dataset/droidslam.sh
-sh  scripts/eval_drunkards_dataset/edam.sh
+sh scripts/eval_drunkards_dataset/colmap.sh
+sh scripts/eval_drunkards_dataset/droidslam.sh
+sh scripts/eval_drunkards_dataset/edam.sh
 ```
 
 You need to save the estimated poses 'pose_est.txt' with the same folder structure as the Drunkard's Odometry, but name the method's folder as 'colmap', 'droidslam' or 'edam', respectively. In addition, in those cases where not the full scene has been tracked, you must remove those missing poses from the ground truth file 'pose.txt'.
@@ -155,7 +156,7 @@ For the evaluation, we use the same [data](https://drive.google.com/file/d/1Iqdk
 To run the used Drunkard's Odometry models that were trained [with](https://drive.google.com/file/d/1kmg4D9q8X3pYhdpPNfCb_WYSBrfnKkCM/view?usp=sharing) and [without](https://drive.google.com/file/d/1OUcpYJTP_5rXdadeK6wEVi2IZmBiOctX/view?usp=sharing) deformation:
 
 ```shell
-sh  scripts/eval_hamlyn/drunkards_odometry.sh
+sh scripts/eval_hamlyn/drunkards_odometry.sh
 ```
 
 
