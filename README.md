@@ -84,9 +84,21 @@ sh scripts/render/pose.sh
 ```
 
 
+## 	:call_me_hand: Demo
+
+You can run the demo to predict the camera trajectory from RGB-D frames:
+
+```shell
+python scripts/demo.py --name=demo --ckpt=/.../drunkards-odometry.pth --datapath=/.../DrunkardsDatasetSample/00000/level1 --intrinsics 190.68059285 286.02088928 160. 160. --depth_factor=0.000457771 --depth_limit_bottom=0.1 --depth_limit_top=30.
+```
+
+In this example, we are estimating the pose on [Drunkard's Dataset samples](https://drive.google.com/file/d/1tKuDIVG_eikSpOAvcvNiS-psIqo-1UJQ/view?usp=sharing), thus substitute them with your own data and the parameters accordingly. In this demo script, the datapath is the absolut path to the folder where color and depth subfolders are. Execute ```python scripts/demo.py -h``` to see them in detail.
+
+
+
 ## 🧠 Training
 
-To execute a small training test over the [Drunkard's Dataset Sample](https://drive.google.com/file/d/1tKuDIVG_eikSpOAvcvNiS-psIqo-1UJQ/view?usp=sharing):
+To execute a small training test over [Drunkard's Dataset samples](https://drive.google.com/file/d/1tKuDIVG_eikSpOAvcvNiS-psIqo-1UJQ/view?usp=sharing):
 
 ```shell
 python scripts/train.py --name=drunkards-odometry-test --datapath=/.../DrunkardsDatasetSample --difficulty_level=1 --batch_size=2 --train_scenes 0 --val_scenes 0 
@@ -158,17 +170,6 @@ To run the used Drunkard's Odometry models that were trained [with](https://driv
 ```shell
 sh scripts/eval_hamlyn/drunkards_odometry.sh
 ```
-
-
-## 	:call_me_hand: Demo
-
-You can run the demo to predict the camera trajectory from RGB-D frames:
-
-```shell
-python scripts/demo.py --name=demo --ckpt=/.../drunkards-odometry.pth --datapath=/.../DrunkardsDatasetSample/00000/level1 --intrinsics 190.68059285 286.02088928 160. 160. --depth_factor=0.000457771 --depth_limit_bottom=0.1 --depth_limit_top=30.
-```
-
-In this example, we are estimating the pose on Drunkard's Dataset samples, thus substitute them with your own data and the parameters accordingly. In this demo script, the datapath is the absolut path to the folder where color and depth subfolders are. Execute ```python scripts/demo.py -h``` to see them in detail.
 
 
 ## 👩‍⚖️ License
