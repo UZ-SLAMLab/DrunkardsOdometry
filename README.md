@@ -25,7 +25,7 @@ The Drunkard's Dataset can be found [here](https://drive.google.com/drive/folder
 ├── Drunkard's Dataset
     ├── 1024 (resolution 1024x1024)
         ├── 00000 (scene 0)
-            ├── level0 (level of difficulty)
+            ├── level0 (level of difficulty 0)
                 ├── color
                 ├── depth
                 ├── optical_flow
@@ -47,7 +47,41 @@ There are 2 versions of the dataset, with resolution 1024x1024 and 320x320 (this
 - Camera trajectory pose: .txt file containing at each line a different SE(3) world-to-camera transformation for every frame. Format: timestamp, translation (tx, ty, tz), quaternions (qx, qy, qz, qw).
 - Wrong camera poses: .txt file containing corrupted frame timestamps and the immediately adjacent ones that are rejected in the dataloader. It barely happens for some specific cases, not in the used test scenes (0, 4 and 5). It is being currently addressed.
 
-Check the Drunkard's Odometry dataloader for further coding technical details to work with the data.
+Check the [Drunkard's Odometry dataloader](https://github.com/UZ-SLAMLab/DrunkardsOdometry/blob/b1ce3f57fb0b400a3c47e7f94efb9388cd74ecbb/data_readers/drunkards.py) for further coding technical details to work with the data.
+
+
+## 🏭 Rendering
+
+Anyone can render custom versions of the Drunkard's Dataset using its [blender project files](https://drive.google.com/drive/folders/1E0DngACgQeVY8bSA-AtBMblegQQU1BDp?usp=sharing). There you can find two blender files per scene and level, one for color and depth images (workspace.blend), and other for optical flow and normal maps (workspace_flow.blend) rendering:
+```Shell
+├── blender
+    ├── 00000 (scene 0)
+        ├── level0 (level of difficulty 0)
+            ├── workspace.blend (color and depth images)
+            ├── workspace_flow.blend (optical flow and normal maps)
+        ├── level1 
+        ├── level2
+        ├── level3
+```
+
+You will need to install in Blender [this python script](https://github.com/UZ-SLAMLab/DrunkardsOdometry/blob/b1ce3f57fb0b400a3c47e7f94efb9388cd74ecbb/scripts/render/addon_ground_truth_generation.py) modified from [VisionBlender](https://github.com/Cartucho/vision_blender) (check it out to see the easy installation).  
+You can modify the deformations and camera trajectory as you want opening the files in Blender, saving them and executing the following scripts (edit the absolut paths inside them beforehand) to render your custom dataset: 
+
+To render color and depth images:
+```shell
+sh  scripts/render/color_and_depth.sh
+```
+
+To render optical flow and normal maps:
+```shell
+sh  scripts/render/flow_and_normal.sh
+```
+
+To render camera trajectory:
+```shell
+sh  scripts/render/pose.sh
+```
+
 
 ## 🧠 Training
 
