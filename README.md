@@ -7,7 +7,7 @@ David Recasens, Martin R. Oswald, Marc Pollefeys, Javier Civera
 
 
 ## 💭 About
-This repository is the official implementation of The Drunkard’s Odometry, a robust flow-based odometry estimation method, and contains information about the Drunkard’s Dataset, a challenging collection of synthetic data targeting visual navigation and reconstruction in deformable environments.
+This repository is the official implementation of the Drunkard’s Odometry, a robust flow-based odometry estimation method, and contains information about the Drunkard’s Dataset, a challenging collection of synthetic data targeting visual navigation and reconstruction in deformable environments.
 
 
 ## ⚙️ Setup
