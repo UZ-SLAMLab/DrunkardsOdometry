@@ -26,13 +26,11 @@ conda create --name drunkard --file requirements.txt
 
 ## 💾 Data
 
-<div align="center">
-  <a href="https://www.youtube.com/watch?v=m-LXKal481k">
-    <img src="assets/thumbnail_low.jpg" alt="VIDEO_TITLE" width="480" />
+<p align="center">
+  <a href="https://www.youtube.com/embed/m-LXKal481k">
+    <img src="assets/video.gif" alt="example input output gif" width="720" />
   </a>
-</div>
-
-
+</p>
 
 
 The Drunkard's Dataset can be found [here](https://drive.google.com/drive/folders/1AZHUKMbe7bR1xwRmAAZ0AHgcEqRnNjms?usp=sharing). Directory structure:
