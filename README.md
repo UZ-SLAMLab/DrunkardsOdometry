@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-[The Drunkard’s Odometry: Estimating Camera Motion in Deforming Scenes]()  
+The Drunkard’s Odometry: Estimating Camera Motion in Deforming Scenes 
 </p>
 <p align="center">
 David Recasens, Martin R. Oswald, Marc Pollefeys, Javier Civera
@@ -26,10 +26,13 @@ conda create --name drunkard --file requirements.txt
 
 ## 💾 Data
 
-<div style="position: relative; width: 560px; height: 315px;">
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/m-LXKal481k?autoplay=1" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-    <img src="assets/thumbnail_low.jpg" alt="Fallback Image" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none;">
+<div align="center">
+  <a href="https://www.youtube.com/watch?v=m-LXKal481k">
+    <img src="assets/thumbnail_low.jpg" alt="VIDEO_TITLE" width="480" />
+  </a>
 </div>
+
+
 
 
 The Drunkard's Dataset can be found [here](https://drive.google.com/drive/folders/1AZHUKMbe7bR1xwRmAAZ0AHgcEqRnNjms?usp=sharing). Directory structure:
