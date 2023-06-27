@@ -1,6 +1,9 @@
 # The Drunkard’s Odometry: Estimating Camera Motion in Deforming Scenes
 
-<center><img src="assets/Overview_drunk.jpg" width="540" style="center"></center>
+<div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+  <img src="assets/Overview_drunk.jpg" width="540" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+</div>
+
 
 [The Drunkard’s Odometry: Estimating Camera Motion in Deforming Scenes]()  
 David Recasens, Martin R. Oswald, Marc Pollefeys, Javier Civera
@@ -178,3 +181,8 @@ The code, dataset and additional resources of this work are released under [MIT 
 
 - The code in drunkards_odometry and data_readers folders is based and extended from [RAFT-3D](https://github.com/princeton-vl/RAFT-3D) under [BSD 3-Clause License](https://github.com/princeton-vl/RAFT-3D/blob/master/LICENSE).
 - The code in drunkards_odometry/pose_cnn is derived from [Manydepth](https://github.com/nianticlabs/manydepth) under [ManyDepth License](https://github.com/nianticlabs/manydepth/blob/master/LICENSE).
+
+
+## 🔬 Funding
+
+This work was supported by EndoMapper GA 863146 (EU-H2020), PGC2018-096367-B-I00 (Spanish Government), DGA-T45 17R/FSE (Aragón Government).
