@@ -27,7 +27,7 @@ conda create --name drunkard --file requirements.txt
 ## 💾 Data
 
 <p align="center">
-  <a href="https://www.youtube.com/embed/m-LXKal481k">
+  <a href="https://youtu.be/wL8JDg6bemg">
     <img src="assets/video.gif" alt="example input output gif" width="720" />
   </a>
 </p>
