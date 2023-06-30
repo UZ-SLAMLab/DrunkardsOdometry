@@ -195,4 +195,4 @@ The code, dataset and additional resources of this work are released under [MIT 
 
 ## 🔬 Funding
 
-This work was supported by EndoMapper GA 863146 (EU-H2020), PGC2018-096367-B-I00 (Spanish Government), DGA-T45 17R/FSE (Aragón Government).
+This work was supported by the EU Comission (EU-H2020 EndoMapper GA 863146), the Spanish Government (PID2021-127685NB-I00 and TED2021-131150BI00), the Aragon Government (DGA-T45 17R/FSE), and a research grant from FIFA.
