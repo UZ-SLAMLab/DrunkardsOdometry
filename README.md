@@ -4,11 +4,11 @@
   <img src="assets/Overview_drunk.jpg" width="540">
 </p>
 
+<div style="line-height: 0.8;">
 <p align="center">The Drunkard’s Odometry: Estimating Camera Motion in Deforming Scenes</p>
 <p align="center">David Recasens, Martin R. Oswald, Marc Pollefeys, Javier Civera</p>
 <p align="center"><a href="https://arxiv.org/abs/2306.16917">arXiv preprint</a></p>
-
-
+</div>
 
 
 ## 💭 About
