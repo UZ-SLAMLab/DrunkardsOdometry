@@ -4,12 +4,18 @@
   <img src="assets/Overview_drunk.jpg" width="540">
 </p>
 
-<p align="center">
-The Drunkard’s Odometry: Estimating Camera Motion in Deforming Scenes 
-</p>
-<p align="center">
-David Recasens, Martin R. Oswald, Marc Pollefeys, Javier Civera
-</p>
+<style>
+    .reduce-space {
+        margin-bottom: 0;
+        line-height: 1;
+    }
+</style>
+
+<p align="center" class="reduce-space">The Drunkard’s Odometry: Estimating Camera Motion in Deforming Scenes</p>
+<p align="center" class="reduce-space">David Recasens, Martin R. Oswald, Marc Pollefeys, Javier Civera</p>
+<p align="center" class="reduce-space"><a href="https://arxiv.org/abs/2306.16917">arXiv preprint</a></p>
+
+
 
 
 ## 💭 About
@@ -97,7 +103,7 @@ sh scripts/render/pose.sh
 ```
 
 
-## 	:call_me_hand: Demo
+## :call_me_hand: Demo
 
 You can run the demo to predict the camera trajectory from RGB-D frames:
 
@@ -182,6 +188,18 @@ To run the used Drunkard's Odometry models that were trained [with](https://driv
 
 ```shell
 sh scripts/eval_hamlyn/drunkards_odometry.sh
+```
+
+
+## ‍🎓 Citing
+
+```shell
+@article{recasens2023drunkard,
+  title={The Drunkard's Odometry: Estimating Camera Motion in Deforming Scenes},
+  author={Recasens, David and Oswald, Martin R and Pollefeys, Marc and Civera, Javier},
+  journal={arXiv preprint arXiv:2306.16917},
+  year={2023}
+}
 ```
 
 
