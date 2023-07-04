@@ -17,9 +17,13 @@ This repository is the official implementation of the Drunkard’s Odometry, a r
 
 ## ⚙️ Setup
 
-We ran our experiments under CUDA 9.1.85, CuDNN 7.6.5 and Ubuntu 18.04 and (check eth cluster), using a single RTX Nvidia Titan GPU during training and/or a single RTX Nvidia 2080 Ti for evaluation. We recommend create a virtual environment with Python 3.7 using [Anaconda](https://www.anaconda.com/download/) `conda create -n edam python=3.7` and install the dependencies as
+We ran our experiments under CUDA 9.1.85, CuDNN 7.6.5 and Ubuntu 18.04 and, using a single RTX Nvidia Titan GPU during training and/or a single RTX Nvidia 2080 Ti for evaluation. We recommend create a virtual environment with Python 3.7 using [Anaconda](https://www.anaconda.com/download/) and install the dependencies as
 ```shell
-conda create --name drunkard --file requirements.txt
+conda create -n drunk python=3.7
+conda activate drunk
+pip install torch==1.7.0+cu101 torchvision==0.8.0+cu101 torchaudio==0.7.0 -f https://download.pytorch.org/whl/torch_stable.html
+conda install --file requirements.txt
+pip install git+https://github.com/princeton-vl/lietorch.git
 ```
 
 
