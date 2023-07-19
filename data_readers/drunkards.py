@@ -111,7 +111,8 @@ class DrunkDataset(data.Dataset):
         depth2 = cv2.imread(self.depth_list[index][1], cv2.IMREAD_ANYDEPTH)
         depth1 = np.array(depth1, dtype="float32") / (2 ** 16 - 1) * 30  # [m]
         depth2 = np.array(depth2, dtype="float32") / (2 ** 16 - 1) * 30  # [m]
-        flow2d = np.load(self.flow_list[index][0])['optical_flow']
+        flow2d = np.load(self.flow_list[index][0])['optical_flow']  # third coordinate: [flow x-axis, flow y-axis]
+        # flow x-axis is positive from left to right, flow y-axis is positive from top to bottom
 
         pose1 = self.pose_list[index][0].split()
         pose2 = self.pose_list[index][1].split()
