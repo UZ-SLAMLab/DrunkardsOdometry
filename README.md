@@ -102,6 +102,8 @@ sh scripts/render/pose.sh
 
 ## :call_me_hand: Demo
 
+**Currently there is a bug in the released code that produces a wrong performance in the pose estimation. This will be solved soon.**
+
 You can run the demo to predict the camera trajectory from RGB-D frames:
 
 ```shell
