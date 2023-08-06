@@ -1,4 +1,3 @@
-# Modified by David Recasens from:
 # Copyright Niantic 2021. Patent Pending. All rights reserved.
 #
 # This software is licensed under the terms of the ManyDepth licence
@@ -14,6 +13,7 @@ import numpy as np
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torchvision.models as models
 import torch.utils.model_zoo as model_zoo
 
@@ -22,7 +22,7 @@ class ResNetMultiImageInput(models.ResNet):
     """Constructs a resnet model with varying number of input images.
     Adapted from https://github.com/pytorch/vision/blob/master/torchvision/models/resnet.py
     """
-    def __init__(self, block, layers, num_input_images=1):
+    def __init__(self, block, layers, num_classes=1000, num_input_images=1):
         super(ResNetMultiImageInput, self).__init__(block, layers)
         self.inplanes = 64
         self.conv1 = nn.Conv2d(

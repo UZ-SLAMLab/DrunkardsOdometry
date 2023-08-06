@@ -124,7 +124,7 @@ class DrunkDataset(data.Dataset):
         pose2 = np.array([tx2, ty2, tz2, qx2, qy2, qz2, qw2], dtype="float32")
 
         # From numpy to torch
-        image1 = torch.from_numpy(image1).float().permute(2, 0, 1)  # RGB
+        image1 = torch.from_numpy(image1).float().permute(2, 0, 1)
         image2 = torch.from_numpy(image2).float().permute(2, 0, 1)
         depth1 = torch.from_numpy(depth1).float()
         depth2 = torch.from_numpy(depth2).float()

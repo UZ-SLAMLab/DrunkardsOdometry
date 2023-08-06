@@ -54,7 +54,7 @@ class DemoDataset(data.Dataset):
         depth2 = np.array(depth2, dtype="float32") * self.depth_factor
 
         # From numpy to torch
-        image1 = torch.from_numpy(image1).float().permute(2, 0, 1)  # RGB
+        image1 = torch.from_numpy(image1).float().permute(2, 0, 1)
         image2 = torch.from_numpy(image2).float().permute(2, 0, 1)
         depth1 = torch.from_numpy(depth1).float()
         depth2 = torch.from_numpy(depth2).float()

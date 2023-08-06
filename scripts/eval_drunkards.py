@@ -35,7 +35,7 @@ def prepare_images_and_depths(image1, image2, depth1, depth2):
 def compute_errors(T, pose, flow_gt, depth1, depth2, intrinsics, pose_gt, valid_mask, metrics, count_all):
     """ Loss function defined over sequence of flow predictions """
     # Use transformation field to extract 2D and 3D flow
-    flow2d_est, flow3d_est, valid = pops.induced_flow(T, depth1, intrinsics, min_depth=0.01, max_depth=30.0)
+    flow2d_est, flow3d_est, valid = pops.induced_flow(T, depth1, intrinsics, min_depth=.01, max_depth=30.)
     valid = valid > 0.5
     valid_mask *= valid.unsqueeze(-1)
 
@@ -59,10 +59,10 @@ def compute_errors(T, pose, flow_gt, depth1, depth2, intrinsics, pose_gt, valid_
     epe_2d = (fl_est - fl_gt).norm(dim=-1)  # Euclidean distance, L2 norm
     epe_2d = epe_2d.view(-1)[valid_mask.view(-1)].double().cpu().numpy()
 
-    count_all += epe_2d.shape[0]  # num of valid pixels
+    count_all += epe_2d.shape[0]  # Num of valid pixels
 
     epe_dz = (dz_est - dz_gt).norm(dim=-1)
-    epe_dz = epe_dz.view(-1)[valid_mask.view(-1)].double().cpu().numpy()  # inverse depth change error
+    epe_dz = epe_dz.view(-1)[valid_mask.view(-1)].double().cpu().numpy()  # Inverse depth change error
 
     metrics['epe_2d'] += epe_2d.sum()
     metrics['epe_dz'] += epe_dz.sum()
@@ -79,16 +79,23 @@ def compute_errors(T, pose, flow_gt, depth1, depth2, intrinsics, pose_gt, valid_
 
     return metrics, count_all
 
+def progressbar(current_value, total_value, bar_lengh, progress_char):
+    """https://stackoverflow.com/a/75033230"""
+    percentage = int((current_value / total_value) * 100)
+    progress = int((bar_lengh * current_value) / total_value)
+    loadbar = "Progress: [{:{len}}]{}%".format(progress * progress_char, percentage, len=bar_lengh)
+    print(loadbar, end='\r')
+
 @torch.no_grad()
 def test(model, scene, args):
     loader_args = {'batch_size': 1, 'shuffle': False, 'num_workers': 0, 'drop_last': False}
     test_dataset = DrunkDataset(root=args.datapath,
-                                 difficulty_level=args.difficulty_level,
-                                 do_augment=False,
-                                 res_factor=args.res_factor,
-                                 scenes_to_use=scene,
-                                 depth_augmentor=False,
-                                 mode='test')
+                                difficulty_level=args.difficulty_level,
+                                do_augment=False,
+                                res_factor=args.res_factor,
+                                scenes_to_use=scene,
+                                depth_augmentor=False,
+                                mode='test')
     test_loader = DataLoader(test_dataset, **loader_args)
     num_frames = len(test_loader)
 
@@ -109,10 +116,8 @@ def test(model, scene, args):
         # pad and normalize images
         image1, image2, depth1, depth2 = prepare_images_and_depths(image1, image2, depth1, depth2)
 
-        T, pose = model(
-            **dict(image1=image1, image2=image2, depth1=depth1, depth2=depth2,
-                   intrinsics=intrinsics, iters=12, train_mode=False,
-                   depth_scale_factor=depth_scale_factor))
+        T, pose = model(**dict(image1=image1, image2=image2, depth1=depth1, depth2=depth2, intrinsics=intrinsics,
+                               iters=12, train_mode=False, depth_scale_factor=depth_scale_factor))
 
         metrics, count_all = compute_errors(T, pose, flowxyz_gt, depth1, depth2, intrinsics, pose_gt, valid_mask, metrics, count_all)
 
@@ -131,11 +136,17 @@ def test(model, scene, args):
     print("Metrics for the scene " + str(scene) + ":")
     for key in metrics:
         if key in {'pose_tra_error_RMSE', 'pose_rot_error_axisangle_module'}:
-            print(key, (metrics[key] / num_frames).item())
-            f_metrics.writelines(key + '    ' + str((metrics[key] / num_frames).item()) + '\n')
+            data = metrics[key] / num_frames
+            if hasattr(data, 'item'):
+                data = data.item()
+            print(key, data)
+            f_metrics.writelines(key + '    ' + str(data) + '\n')
         else:
-            print(key, (metrics[key] / count_all).item())
-            f_metrics.writelines(key + '    ' + str((metrics[key] / count_all).item()) + '\n')
+            data = metrics[key] / count_all
+            if hasattr(data, 'item'):
+                data = data.item()
+            print(key, data)
+            f_metrics.writelines(key + '    ' + str(data) + '\n')
 
     f_poses.close()
     f_metrics.close()
@@ -151,14 +162,14 @@ if __name__ == '__main__':
     parser.add_argument('--test_scenes', type=int, nargs='+', default=[0, 4, 5], help='scenes used for testing')
     parser.add_argument("--save_path", type=str, help="specify full path. Results will be saved here")
     parser.add_argument('--pose_bias', type=float, default=0.01, help='bias to be multiplied to the estimated '
-                        'delta_pose of the model in each iteration.')
+                                                                      'delta_pose of the model in each iteration.')
     parser.add_argument('--radius', type=int, default=32)
     args = parser.parse_args()
     print(args)
 
     import importlib
-
-    model = importlib.import_module('drunkards_odometry.model').DrunkardsOdometry(args)
+    model = importlib.import_module('drunkards_odometry.model').DrunkardsOdometry
+    model = torch.nn.DataParallel(model(args))
     checkpoint = torch.load(args.ckpt)
     model.load_state_dict(checkpoint['model_state_dict'], strict=False)
     model.cuda()
@@ -167,7 +178,7 @@ if __name__ == '__main__':
     if args.save_path:
         original_save_path = args.save_path
     else:
-        original_save_path = os.path.join(os.getcwd(), 'evaluations_drunkards_dataset')  # todo chequear que el os.getcwd() me devuelve el path padre de este script, es decri, el main folder
+        original_save_path = os.path.join(os.getcwd(), 'evaluations_drunkards_dataset')
 
     for scene in args.test_scenes:
         args.save_path = os.path.join(original_save_path, "{:05d}".format(scene), "level{}".format(args.difficulty_level), args.name)

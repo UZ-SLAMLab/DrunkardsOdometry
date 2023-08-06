@@ -9,6 +9,7 @@ from data_readers.hamlyn import HamlynDataset
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from utils import *
+from tqdm import tqdm
 
 
 def prepare_images_and_depths(image1, image2, depth1, depth2):
@@ -42,13 +43,11 @@ def test(model, scene, args):
     for i_batch, test_data_blob in enumerate(tqdm(test_loader)):
         image1, image2, depth1, depth2, intrinsics, valid_mask, depth_scale_factor = [data_item.cuda() for data_item in test_data_blob]
 
-        # pad and normalize images
+        # Pad and normalize images
         image1, image2, depth1, depth2 = prepare_images_and_depths(image1, image2, depth1, depth2)
 
-        T, pose = model(
-        **dict(image1=image1, image2=image2, depth1=depth1, depth2=depth2,
-               intrinsics=intrinsics, iters=12, train_mode=False,
-               depth_scale_factor=depth_scale_factor))
+        T, pose = model(**dict(image1=image1, image2=image2, depth1=depth1, depth2=depth2, intrinsics=intrinsics,
+                               iters=12, train_mode=False, depth_scale_factor=depth_scale_factor))
 
         # Uncomment if you want 2D and 3D flow and valid flow pixels
         # flow2d_est, flow3d_est, valid = pops.induced_flow(T, depth1, intrinsics, min_depth=0.01, max_depth=0.3)
@@ -83,6 +82,7 @@ if __name__ == '__main__':
     import importlib
 
     model = importlib.import_module('drunkards_odometry.model').DrunkardsOdometry(args)
+    model = torch.nn.DataParallel(model)
     checkpoint = torch.load(args.ckpt)
     model.load_state_dict(checkpoint['model_state_dict'], strict=False)
     model.cuda()
@@ -91,7 +91,7 @@ if __name__ == '__main__':
     if args.save_path:
         original_save_path = args.save_path
     else:
-        original_save_path = os.path.join(os.getcwd(), 'evaluations_hamlyn')  # todo chequear que el os.getcwd() me devuelve el path padre de este script, es decri, el main folder
+        original_save_path = os.path.join(os.getcwd(), 'evaluations_hamlyn')
 
     for scene in args.test_scenes:
         args.save_path = os.path.join(original_save_path, scene, args.name)

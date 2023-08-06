@@ -63,17 +63,6 @@ class HamlynDataset(data.Dataset):
         depth1 = torch.from_numpy(depth1).float()
         depth2 = torch.from_numpy(depth2).float()
         intrinsics = torch.from_numpy(self.intrinsics_list[index]).float()
-        # target_res = self.target_res_list[index]
-        # original_res = [image1.shape[1], image1.shape[2]] # todo chequear que la altura y anchura estan bien
-        #
-        # if target_res[0] != original_res[0] or target_res[1] != original_res[1]: # todo creo que esto no hace falta porque es siempre igual
-        #     h, w = target_res[0], target_res[1]
-        #     sy, sx = float(h) / float(original_res[0]), float(w) / float(original_res[1])
-        #     image1 = F.interpolate(image1[None], [h, w], mode='bilinear', align_corners=True)[0]
-        #     image2 = F.interpolate(image2[None], [h, w], mode='bilinear', align_corners=True)[0]
-        #     depth1 = F.interpolate(depth1[None, None], [h, w], mode='bilinear', align_corners=True)[0, 0]
-        #     depth2 = F.interpolate(depth2[None, None], [h, w], mode='bilinear', align_corners=True)[0, 0]
-        #     intrinsics *= torch.as_tensor([sx, sy, sx, sy])
 
         # Limit upper depth bound to 30 cm
         depth_mask = (depth1 > 0.01) * (depth1 < 0.3) * (depth2 > 0.01) * (depth2 < 0.3)

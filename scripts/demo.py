@@ -99,6 +99,7 @@ if __name__ == '__main__':
     import importlib
 
     model = importlib.import_module('drunkards_odometry.model').DrunkardsOdometry(args)
+    model = torch.nn.DataParallel(model)
     checkpoint = torch.load(args.ckpt)
     model.load_state_dict(checkpoint['model_state_dict'], strict=False)
     model.cuda()

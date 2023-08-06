@@ -1,4 +1,3 @@
-# Modified by David Recasens from:
 # Copyright Niantic 2021. Patent Pending. All rights reserved.
 #
 # This software is licensed under the terms of the ManyDepth licence

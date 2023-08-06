@@ -1,7 +1,6 @@
 import numpy as np
 from scipy.spatial.transform import Rotation as R  # Hamilton quaternion convention. qx, qy, qz, qw
-from pytorch3d.transforms import matrix_to_quaternion, quaternion_to_matrix, quaternion_invert, euler_angles_to_matrix, matrix_to_euler_angles  # qw, qx, qy, qz
-
+from pytorch3d.transforms import matrix_to_quaternion, quaternion_to_matrix, quaternion_invert  # qw, qx, qy, qz
 
 from .sampler_ops import *
 
@@ -9,7 +8,7 @@ from .sampler_ops import *
 def project(Xs, intrinsics):
     """ Pinhole camera projection """
     X, Y, Z = Xs.unbind(dim=-1)
-    fx, fy, cx, cy = intrinsics[:,None,None].unbind(dim=-1)
+    fx, fy, cx, cy = intrinsics[:, None, None].unbind(dim=-1)
 
     x = fx * (X / Z) + cx
     y = fy * (Y / Z) + cy
@@ -22,12 +21,12 @@ def project(Xs, intrinsics):
 def inv_project(depths, intrinsics):
     """ Pinhole camera inverse-projection """
     ht, wd = depths.shape[-2:]
-    
+
     fx, fy, cx, cy = \
-        intrinsics[:,None,None].unbind(dim=-1)
+        intrinsics[:, None, None].unbind(dim=-1)
 
     y, x = torch.meshgrid(
-        torch.arange(ht).to(depths.device).float(), 
+        torch.arange(ht).to(depths.device).float(),
         torch.arange(wd).to(depths.device).float())
 
     X = depths * ((x - cx) / fx)
@@ -43,7 +42,8 @@ def projective_transform(T, depth, intrinsics, min_depth=0.01, max_depth=30.0):
     X1 = T * X0
     x1 = project(X1, intrinsics)
 
-    valid = (X0[...,-1] > min_depth) & (X1[...,-1] > min_depth) & (X0[...,-1] < max_depth) & (X1[...,-1] < max_depth)
+    valid = (X0[..., -1] > min_depth) & (X1[..., -1] > min_depth) & (X0[..., -1] < max_depth) & (
+                X1[..., -1] < max_depth)
     return x1, valid.float()
 
 
@@ -58,7 +58,8 @@ def induced_flow(T, depth, intrinsics, min_depth=0.01, max_depth=30.0):
     flow2d = x1 - x0
     flow3d = X1 - X0
 
-    valid = (X0[...,-1] > min_depth) & (X1[...,-1] > min_depth) & (X0[...,-1] < max_depth) & (X1[...,-1] < max_depth)
+    valid = (X0[..., -1] > min_depth) & (X1[..., -1] > min_depth) & (X0[..., -1] < max_depth) & (
+                X1[..., -1] < max_depth)
     return flow2d, flow3d, valid.float()
 
 
@@ -99,10 +100,10 @@ def backproject_flow3d(flow2d, depth0, depth1, intrinsics):
 
 def absolut_to_relative_poses(pose1, pose2):
     """
-    Given two transformation to change from camera1 and 2 to world coordinate frame (world-to-camera):
+    Given two transformation matrices to change from camera1 and 2 to world coordinate frame (world-to-camera):
         T_w_c1 (pose1): traslation, quaternions
         T_w_c2 (pose2): traslation, quaternions
-    Return relative transformation to change from camera frame 1 to 2 a camera-to-world transformation:
+    Return relative transformation matrix to change from camera frame 1 to 2 a camera-to-world transformation:
         T_c2_c1:  traslation, quaternions
         T_c2_w = T_c2_c1 * T_c1_w -> T_w_c2^-1 = T_c2_c1 * T_w_c1^-1 -> T_c2_c1 = T_w_c2^-1 * T_w_c1
     """
@@ -261,11 +262,11 @@ def pose_from_quaternion_to_axis_angle(pose: torch.Tensor) -> torch.Tensor:
     small_angles = angles.abs() < eps
     sin_half_angles_over_angles = torch.empty_like(angles)
     sin_half_angles_over_angles[~small_angles] = (
-        torch.sin(half_angles[~small_angles]) / angles[~small_angles]
+            torch.sin(half_angles[~small_angles]) / angles[~small_angles]
     )
     # For x small, sin(x/2) is about x/2 - (x/2)^3/6, so sin(x/2)/x is about 1/2 - (x*x)/48
     sin_half_angles_over_angles[small_angles] = (
-        0.5 - (angles[small_angles] * angles[small_angles]) / 48
+            0.5 - (angles[small_angles] * angles[small_angles]) / 48
     )
     axis_angles = quaternions[..., 1:] / sin_half_angles_over_angles
     pose = torch.cat((pose[..., :3], axis_angles), dim=-1)

@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 
-def bilinear_sampler(img, coords, mode='bilinear', mask=False):
+def bilinear_sampler(img, coords, mask=False):
     """ Wrapper for grid_sample, uses pixel coordinates """
     H, W = img.shape[-2:]
     xgrid, ygrid = coords.split([1,1], dim=-1)

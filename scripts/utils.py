@@ -79,7 +79,7 @@ class Logger:
 
 
 def normalize_image(image):
-    image = image[:, [2, 1, 0]]
+    image = image[:, [2, 1, 0]]  # BGR to RGB
     # Drunkard's Dataset normalization values
     mean = torch.as_tensor([157.7229, 163.4245, 169.4616], device=image.device) / 255.0
     std = torch.as_tensor([60.3560, 58.4104, 55.9718], device=image.device) / 255.0
