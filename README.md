@@ -108,7 +108,7 @@ You can run the demo to predict the camera trajectory from RGB-D frames:
 python scripts/demo.py --name=demo --ckpt=/.../drunkards-odometry.pth --datapath=/.../DrunkardsDatasetSample/00000/level1 --intrinsics 190.68059285 286.02088928 160. 160. --depth_factor=0.000457771 --depth_limit_bottom=0.1 --depth_limit_top=30.
 ```
 
-In this example, we are estimating the pose on [Drunkard's Dataset samples](https://drive.google.com/file/d/1tKuDIVG_eikSpOAvcvNiS-psIqo-1UJQ/view?usp=sharing) (a 10 frames mini dataset) with [Drunkard's Odometry model](), thus substitute them with your own data and the parameters accordingly. In this demo script, the datapath is the absolut path to the folder where color and depth subfolders are. Execute ```python scripts/demo.py -h``` to see them in detail.
+In this example, we are estimating the pose on [Drunkard's Dataset samples](https://drive.google.com/file/d/1tKuDIVG_eikSpOAvcvNiS-psIqo-1UJQ/view?usp=sharing) (a 10 frames mini dataset) with the [Drunkard's Odometry model](https://drive.google.com/file/d/1Q7JU8bpmKu6aQqKeoUnYvCp8wJJsUWEp/view?usp=sharing), thus substitute them with your own data and the parameters accordingly. In this demo script, the datapath is the absolut path to the folder where color and depth subfolders are. Execute ```python scripts/demo.py -h``` to see them in detail.
 
 
 
@@ -131,7 +131,7 @@ For a personalized training you can play with the different arguments. Execute `
 
 ## :beers: Drunkard's Dataset Evaluation
 
-To run the used [Drunkard's Odometry model]() on all the four levels of difficulty of the Drunkard's Dataset test scenes:
+To run the used [Drunkard's Odometry model](https://drive.google.com/file/d/1Q7JU8bpmKu6aQqKeoUnYvCp8wJJsUWEp/view?usp=sharing) on all the four levels of difficulty of the Drunkard's Dataset test scenes:
 
 ```shell
 sh scripts/eval_drunkards_dataset/run_drunkards_odometry.sh
@@ -181,7 +181,7 @@ For the evaluation, we use the same [data](https://drive.google.com/file/d/1Iqdk
     ├── test1_backward                  
 ```
 
-To run the used Drunkard's Odometry models that were trained [with]() and [without]() deformation:
+To run the used Drunkard's Odometry models that were trained [with](https://drive.google.com/file/d/1F6rTZAZmlNqYeyjt8mv5vye4ZuY7RbHr/view?usp=sharing) and [without](https://drive.google.com/file/d/16PGUjc_o0lbcgC6LAt6V-A7AhzFqNqdn/view?usp=sharing) deformation:
 
 ```shell
 sh scripts/eval_hamlyn/drunkards_odometry.sh
