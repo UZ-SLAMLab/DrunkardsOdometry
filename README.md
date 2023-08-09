@@ -187,6 +187,7 @@ To run the used Drunkard's Odometry models that were trained [with](https://driv
 sh scripts/eval_hamlyn/drunkards_odometry.sh
 ```
 
+To invert the numbering of the color and depth images of the scenes you can leverage the script ```scripts/eval_hamlyn/invert_order_images.py```. Once you have the forward and backward trajectories of the scenes, use ```scripts/eval_hamlyn/join_two_trajectories``` to join them in a single total trajectory. Then, obtain the Sim(3) scale alignment to equate the scale of all trajectories with ```scripts/eval_hamlyn/get_scale_alignment.sh```. Particularly, in this work we use as reference the trajectory of Endo-Depth-and-Motion (EDaM). After this, to compute the APTE of all the methods, introduce these scale factors in ```scripts/eval_apte.py``` and execute it.
 
 ## ‍🎓 Citing
 
