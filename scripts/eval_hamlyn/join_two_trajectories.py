@@ -8,8 +8,9 @@ import os
 # --> root
 #     --> scene0
 #         --> method0
-#             --> pose_est.txt            Forward estimated camera trajectory poses
-#             --> pose_est_backward.txt   Backward estimated camera trajectory poses
+#             --> pose_est.txt   Forward estimated camera trajectory poses
+#     --> scene0_backward
+#             --> pose_est.txt   Backward estimated camera trajectory poses
 #         ...
 #     ...
 

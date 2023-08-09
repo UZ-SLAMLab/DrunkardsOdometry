@@ -22,7 +22,7 @@ reference_method=edam
 
 for scene in "test1" "test17"
 do    	
-	for method in  "drunkards-odometry" "droidslam"
+	for method in  "drunkards-odometry-hamlyn-w-deformation" "drunkards-odometry-hamlyn-wo-deformation" "droidslam"
 	do
         	echo "###### Comparing $reference_method and $method in scene $scene ######"	
 	
