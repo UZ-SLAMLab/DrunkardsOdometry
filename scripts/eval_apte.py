@@ -20,8 +20,10 @@ scale_factor_for_scene = {"test1": {"edam": 1.0, "droidslam": 0.3200800801484627
 # --> root
 #     --> scene0
 #         --> method0
-#             --> pose_est.txt            Forward estimated camera trajectory poses
-#             --> pose_est_backward.txt   Backward estimated camera trajectory poses
+#             --> pose_est.txt   Forward estimated camera trajectory poses
+#     --> scene0_backward
+#         --> method0
+#             --> pose_est.txt   Backward estimated camera trajectory poses
 #         ...
 #     ...
 root = "/.../evaluations_hamyln"
@@ -41,7 +43,7 @@ for scene in scenes:
         print("###### Evaluating method {} in scene {} ######".format(method, scene))
 
         pose_forward = os.path.join(root, scene, method, "pose_est.txt")
-        pose_backward = os.path.join(root, scene, method, "pose_est_backward.txt")
+        pose_backward = os.path.join(root, "{}_backward".format(scene), method, "pose_est.txt")
         scale_factor = scale_factor_for_scene[scene][method]
 
         # Read poses

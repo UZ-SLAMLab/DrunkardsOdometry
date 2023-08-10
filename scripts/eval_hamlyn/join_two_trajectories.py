@@ -10,9 +10,16 @@ import os
 #         --> method0
 #             --> pose_est.txt   Forward estimated camera trajectory poses
 #     --> scene0_backward
+#         --> method0
 #             --> pose_est.txt   Backward estimated camera trajectory poses
 #         ...
 #     ...
+
+# Output:
+# --> root
+#     --> scene0
+#         --> method0
+#             --> pose_est_total.txt
 
 root = "/.../evaluations_hamlyn"
 scenes = ["test1", "test17"]
