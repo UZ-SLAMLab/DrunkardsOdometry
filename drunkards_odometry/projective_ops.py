@@ -219,23 +219,6 @@ def pose_from_matrix_to_quat(pose):
     return pose
 
 
-def invert_pose(pose):
-    """
-    Invert a batch of relative pose transformations in quaternions.
-
-    Input: torch.tensor([BATCH * [tx, ty, tz, qx, qy, qz, qw]])
-    Output: torch.tensor([BATCH * [tx, ty, tz, qx, qy, qz, qw]])
-    """
-    q = pose[:, 3:]  # qx, qy, qz, qw
-    qxyz, qw = q.split([3, 1], dim=-1)
-    q = torch.cat((qw, qxyz), -1)  # qw, qx, qy, qz
-    q = quaternion_invert(q)  # qw, qx, qy, qz
-    qw, qxyz = q.split([1, 3], dim=-1)
-    q = torch.cat((qxyz, qw), -1)  # qx, qy, qz, qw
-
-    return q
-
-
 def pose_from_quaternion_to_axis_angle(pose: torch.Tensor) -> torch.Tensor:
     """
     Inspired from PyTorch3D.

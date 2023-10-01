@@ -1,4 +1,4 @@
-# The Drunkard’s Odometry: Estimating Camera Motion in Deforming Scenes
+# The Drunkard’s Odometry: Estimating Camera Motion in Deforming Scenes [NeurIPS 2023]
 
 <p align="center">
   <img src="assets/Overview_drunk.jpg" width="540">
