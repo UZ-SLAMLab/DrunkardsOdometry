@@ -42,10 +42,10 @@ The Drunkard's Dataset can be found [here](https://drive.google.com/drive/folder
     ├── 1024 (resolution 1024x1024)
         ├── 00000 (scene 0)
             ├── level0 (level of difficulty 0)
-                ├── color
-                ├── depth
-                ├── optical_flow
-                ├── normal
+                ├── color.zip
+                ├── depth.zip
+                ├── optical_flow.zip
+                ├── normal.zip
                 ├── pose.txt 
                 ├── wrong_poses.txt (few times)   
             ├── level1 
